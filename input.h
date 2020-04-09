@@ -11,7 +11,7 @@ class Input
 {
   protected:
     //general parameters
-    const double L = 100.0; //simulaiton length
+    const double L = 15.0; //simulaiton length
     const double T = 1.0; //temperature
     const double m = 1.0;
     const double vmax = 5;//10.0 * sqrt(temperature / m);
@@ -24,8 +24,8 @@ class Input
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.005;
-    const int max_steps = 400000;
+    const double dt = 0.02;
+    const int max_steps = 100000;
 
     //special parameters
     const double uae = 0.05;
@@ -33,6 +33,7 @@ class Input
     //data recording
     const string data_path = "./data/";
     const int data_steps = 10000;
+    const int data_num = max_steps / data_steps;
 
     double GetElecInitDistrib(double x, double v)
     {

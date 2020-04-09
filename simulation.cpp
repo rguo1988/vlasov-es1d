@@ -45,15 +45,6 @@ void Simulation::Run()
     //show information
     cout << "**********************************" << endl;
     cout << "Vlasov Simulation Start!" << endl;
-    //cout << setw(10) << "L = "    << left << setw(6) << L
-    //<< setw(10) << "nx = "   << left << setw(6) << nx
-    //<< setw(10) << "dx = "   << left << setw(6) << dx << endl;
-    //cout << setw(10) << "vmax = " << left << setw(6) << vmax
-    //<< setw(10) << "nv = "   << left << setw(6) << nv
-    //<< setw(10) << "dv = "   << left << setw(6) << dv << endl;
-    //cout << setw(10) << "wT = "   << left << setw(6) << max_steps*dt
-    //<< setw(10) << "steps = " << left << setw(6) << max_steps
-    //<< setw(10) << "dt = "   << left << setw(6) << dt << endl;
     cout.setf(ios::left);
     cout << "     L = " << setw(6) << L
          << "    nx = " << setw(6) << nx
@@ -64,6 +55,7 @@ void Simulation::Run()
     cout << "    wT = " << setw(6) << max_steps*dt
          << " steps = " << setw(6) << max_steps
          << "    dt = " << setw(6) << dt << endl;
+    cout << " datas = " << setw(6) <<data_num << endl;
 
     for(int n = 0; n < max_steps; n++)
     {
