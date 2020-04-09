@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * inhomogeneous plasma generating kappa distribution
+ * BGK mode
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -11,7 +11,7 @@ class Input
 {
   protected:
     //general parameters
-    const double L = 80.0; //simulaiton length
+    const double L = 100.0; //simulaiton length
     const double T = 1.0; //temperature
     const double m = 1.0;
     const double vmax = 5;//10.0 * sqrt(temperature / m);
@@ -20,16 +20,16 @@ class Input
     //definition of simulation constant
     static const int nx = 101;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 201;
+    static const int nv = 1001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.01;
-    const int max_steps = 100000;
+    const double dt = 0.005;
+    const int max_steps = 400000;
 
     //special parameters
-    const double uae = 0.15;
-    const double uai = 0.1;
+    const double uae = 0.05;
+    //const double uai = 0.6;
     //data recording
     const string data_path = "./data/";
     const int data_steps = 10000;
@@ -43,7 +43,8 @@ class Input
     }
     double GetIonInitDistrib(double x, double v)
     {
-        double r = 1.0 + uai * cos(2 * M_PI * x / L) ;
+        //double r =   1.0 + uai * cos(2 * M_PI * x / L) ;
+        double r =   1.0;
         return r;
     }
 };
