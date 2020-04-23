@@ -11,10 +11,10 @@ class Input
 {
   protected:
     //general parameters
-    const double L = 60.0; //simulaiton length
+    const double L = 15.0; //simulaiton length
     const double T = 1.0; //temperature
     const double m = 1.0;
-    const double vmax = 15;//10.0 * sqrt(temperature / m);
+    const double vmax = 5;//10.0 * sqrt(temperature / m);
     const double e = -1.0;
 
     //definition of simulation constant
@@ -24,12 +24,12 @@ class Input
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.005;
-    const int max_steps = 500000;
+    const double dt = 0.02;
+    const int max_steps = 100000;
 
     //special parameters
-    const double uae = 0.4;
-    const double uai = 0.6;
+    const double uae = 0.05;
+    //const double uai = 0.6;
     //data recording
     const string data_path = "./data/";
     const int data_steps = 10000;
@@ -44,7 +44,8 @@ class Input
     }
     double GetIonInitDistrib(double x, double v)
     {
-        double r =   1.0 + uai * cos(2 * M_PI * x / L) ;
+        //double r =   1.0 + uai * cos(2 * M_PI * x / L) ;
+        double r =   1.0;
         return r;
     }
 };

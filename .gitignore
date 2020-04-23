@@ -3,3 +3,7 @@
 vlasov
 /data
 /results
+*.swp
+*~
+.ipynb_chechpoints/
+lastdata*
