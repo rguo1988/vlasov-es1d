@@ -5,5 +5,5 @@ vlasov
 /results
 *.swp
 *~
-.ipynb_chechpoints/
+.ipynb_checkpoints/
 lastdata*

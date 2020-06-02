@@ -8,12 +8,13 @@ class PoissonSolver
     const double dx;
     VectorXd rho;
     VectorXd phi;
-    VectorXd E;
+    //VectorXd E;
 
     void Calculate();
   public:
     PoissonSolver(VectorXd _rho, double _dx);
     double GetPhiVal(int x_index);
     double GetEVal(int x_index);
+    VectorXd E;
 };
 #endif

@@ -71,6 +71,7 @@ void Simulation::Run()
             int nn = n / data_steps;
             string filename = data_path + "data" + to_string(nn);
             OutputMatrix(filename, f);
+            //OutputVector(filename, )
         }
 
         //x shift dt/2
@@ -97,6 +98,12 @@ void Simulation::Run()
         //PoissonSolver poisson_solver(N / L * e * rho, dx);
         PoissonSolver poisson_solver(rho, dx);
 
+        if(n % data_steps == 0)
+        {
+            int nn = n / data_steps;
+            string filename = data_path + "potential" + to_string(nn);
+            OutputMatrix(filename, poisson_solver.E);
+        }
         //v shift dt
         #pragma omp parallel for schedule(guided)
         for(int i = 0; i < nx; i++)
