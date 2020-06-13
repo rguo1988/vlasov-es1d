@@ -101,7 +101,7 @@ void Simulation::Run()
         if(n % data_steps == 0)
         {
             int nn = n / data_steps;
-            string filename = data_path + "potential" + to_string(nn);
+            string filename = data_path + "E" + to_string(nn);
             OutputMatrix(filename, poisson_solver.E);
         }
         //v shift dt
@@ -143,11 +143,11 @@ void Simulation::Run()
             E_sum += poisson_solver.GetEVal(i) * poisson_solver.GetEVal(i);
             for(int j = 0; j < nv - 1; j++)
             {
-                Ek_sum += m * pow(j * dv, 2) * f(i, j);
+                Ek_sum += m * pow(-vmax + j * dv, 2) * f(i, j);
             }
         }
         double Ep_temp = 0.5 * E_sum * dx;
-        double Ek_temp = 0.5 * Ek_sum * dx * dv;
+        double Ek_temp = 0.5 * Ek_sum * dx * dv / L;
         Ep.push_back(Ep_temp);
         Ek.push_back(Ek_temp);
         Et.push_back(Ek_temp + Ep_temp);
