@@ -25,7 +25,7 @@ class Input
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.01;
-    const int max_steps = 10000;
+    const int max_steps = 40000;
 
     //special parameters
     const double uae = 0.1;
@@ -33,7 +33,7 @@ class Input
     const double kappa = 5.0;
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 1000;
+    const int data_steps = 10;
     const int data_num = max_steps / data_steps;
 
     double GetElecInitDistrib(double x, double v)
