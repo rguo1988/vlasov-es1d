@@ -7,7 +7,6 @@ class PoissonSolver
     const int nx;
     const double dx;
     VectorXd rho;
-    VectorXd phi;
     //VectorXd E;
 
     void Calculate();
@@ -15,6 +14,7 @@ class PoissonSolver
     PoissonSolver(VectorXd _rho, double _dx);
     double GetPhiVal(int x_index);
     double GetEVal(int x_index);
+    VectorXd phi;
     VectorXd E;
 };
 #endif

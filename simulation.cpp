@@ -71,7 +71,6 @@ void Simulation::Run()
             int nn = n / data_steps;
             string filename = data_path + "data" + to_string(nn);
             OutputMatrix(filename, f);
-            //OutputVector(filename, )
         }
 
         //x shift dt/2
@@ -92,17 +91,15 @@ void Simulation::Run()
         //calculate \rho
         rho_e = 0.5 * ( f_xshift.block(0, 0, nx, nv - 1).rowwise().sum() +
                         f_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
-        //rho_e = f_xshift.rowwise().sum() * dv;
 
         rho = rho_i - rho_e;
-        //PoissonSolver poisson_solver(N / L * e * rho, dx);
         PoissonSolver poisson_solver(rho, dx);
 
         if(n % data_steps == 0)
         {
             int nn = n / data_steps;
-            string filename = data_path + "E" + to_string(nn);
-            OutputMatrix(filename, poisson_solver.E);
+            string filename = data_path + "phi" + to_string(nn);
+            OutputMatrix(filename, poisson_solver.phi);
         }
         //v shift dt
         #pragma omp parallel for schedule(guided)
