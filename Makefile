@@ -14,3 +14,5 @@ $(OBJ): %.o: %.cpp
 .PHONY: clean
 clean:
 	-rm $(OBJ) $(TARGET)
+run: $(TARGET)
+	-./$(TARGET)
