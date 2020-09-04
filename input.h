@@ -19,22 +19,22 @@ class Input
     const double e = -1.0;
 
     //definition of simulation constant
-    static const int nx = 101;//grid num is nx-1; grid point num is nx
+    static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 501;
+    static const int nv = 201;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.01;
-    const int max_steps = 50000;
+    const int max_steps = 5000;
 
     //special parameters
-    const double uae = 0.6;
+    const double uae = 0.51;
     const double uai = 0.5;
     const double kappa = 0.0;
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 1000;
+    const int data_steps = 10000;
     const int data_num = max_steps / data_steps;
 
     double GetElecInitDistrib(double x, double v)
