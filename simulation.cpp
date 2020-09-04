@@ -150,10 +150,7 @@ void Simulation::Run()
                 Ek_sum += m * pow(-vmax + j * dv, 2) * f(i, j);
             }
         }
-<<<<<<< HEAD
-=======
         //average energy per particle
->>>>>>> b723b0f9293571755d5b4acaa7e2aa76cb9b6edd
         double Ep_temp = 0.5 * E_sum * dx / L;
         double Ek_temp = 0.5 * Ek_sum * dx * dv / L;
         Ep.push_back(Ep_temp);

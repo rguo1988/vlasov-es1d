@@ -14,11 +14,5 @@ $(OBJ): %.o: %.cpp
 .PHONY: clean
 clean:
 	-rm $(OBJ) $(TARGET)
-<<<<<<< HEAD
-
-run:$(TARGET)
-	./$(TARGET)
-=======
 run: $(TARGET)
 	-./$(TARGET)
->>>>>>> b723b0f9293571755d5b4acaa7e2aa76cb9b6edd
