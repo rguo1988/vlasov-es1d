@@ -11,22 +11,30 @@ class Input
 {
   protected:
     //general parameters
-    const double L = 100.0; //simulaiton length
-    const double k = 2.0 * M_PI / L;
+    const double L = 200.0; //simulaiton length
+    const double k = 1 * 2.0 * M_PI / L;
     const double T = 1.0; //temperature
     const double m = 1.0;
-    const double vmax = 10;
+    const double vmax = 50;
     const double e = -1.0;
 
     //definition of simulation constant
     static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
+<<<<<<< HEAD
     static const int nv = 201;
+=======
+    static const int nv = 1001;
+>>>>>>> b723b0f9293571755d5b4acaa7e2aa76cb9b6edd
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.01;
+<<<<<<< HEAD
     const int max_steps = 5000;
+=======
+    const int max_steps = 150000;
+>>>>>>> b723b0f9293571755d5b4acaa7e2aa76cb9b6edd
 
     //special parameters
     const double uae = 0.51;
@@ -45,9 +53,13 @@ class Input
         double rv = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v, 2) / (2 * T));
         return rx * rv;
     }
-    double GetIonInitDistrib(double x, double v)
+    double GetIonInitDistrib(double x, double v, double t)
     {
-        double r =   1.0 + uai * cos(k * x) ;
+        double r = 1.0;
+        if (t <= 100*M_PI)
+            r = 1.0 + uai * cos(k * x) + 0.001 * cos(k * x) * cos(t) * exp(-t / 100/M_PI);
+        else
+            r = 1.0 + uai * cos(k * x);
         //double r = 1.0;
         return r;
     }

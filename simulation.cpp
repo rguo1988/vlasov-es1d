@@ -27,7 +27,7 @@ Simulation::Simulation()
     }
     for (int i = 0; i < nx; i++)
     {
-        rho_i[i] =  GetIonInitDistrib(x_samples[i], 0.0);
+        rho_i[i] =  GetIonInitDistrib(x_samples[i], 0.0, 0.0);
     }
     Ek.clear();
     Ep.clear();
@@ -93,6 +93,10 @@ void Simulation::Run()
         rho_e = 0.5 * ( f_xshift.block(0, 0, nx, nv - 1).rowwise().sum() +
                         f_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
 
+        for (int i = 0; i < nx; i++)
+        {
+            rho_i[i] =  GetIonInitDistrib(x_samples[i], 0.0, n * dt);
+        }
         rho = rho_i - rho_e;
         PoissonSolver poisson_solver(rho, dx);
 
@@ -146,6 +150,10 @@ void Simulation::Run()
                 Ek_sum += m * pow(-vmax + j * dv, 2) * f(i, j);
             }
         }
+<<<<<<< HEAD
+=======
+        //average energy per particle
+>>>>>>> b723b0f9293571755d5b4acaa7e2aa76cb9b6edd
         double Ep_temp = 0.5 * E_sum * dx / L;
         double Ek_temp = 0.5 * Ek_sum * dx * dv / L;
         Ep.push_back(Ep_temp);
