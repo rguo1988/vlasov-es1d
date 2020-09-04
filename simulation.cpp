@@ -55,6 +55,8 @@ void Simulation::Run()
     cout << "    wT = " << setw(6) << max_steps*dt
          << " steps = " << setw(6) << max_steps
          << "    dt = " << setw(6) << dt << endl;
+    cout << "   uae = " << setw(6) << uae
+         << "   uai = " << setw(6) << uai << endl;
     cout << " datas = " << setw(6) << data_num << endl;
 
     for(int n = 0; n < max_steps; n++)
