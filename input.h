@@ -54,6 +54,10 @@ class Input
         if (t <= 100*M_PI)
             r = 1.0 + uai * cos(k * x) + 0.001 * cos(k * x) * cos(t) * exp(-t / 100/M_PI);
         else
+<<<<<<< HEAD
+=======
+            r = 1.0 + uai * cos(k * x);
+>>>>>>> cb81af05142285e1cc0989b224cb4351d474b390
         */
         r = 1.0 + uai * cos(k * x);
         //double r = 1.0;

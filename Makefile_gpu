@@ -1,9 +1,9 @@
 # Makefile for g++
 
-CC = g++
+CC = /usr/lib/aomp/bin/clang++
 SRC = main.cpp diagnose.cpp poisson_solver.cpp cubic_spline_1d_tdma.cpp simulation.cpp
 OBJ := $(SRC:.cpp=.o)
-CFLAGS = -O3 -fopenmp -march=native -std=c++11
+CFLAGS = -O3 -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-andhsa -Xopenmp-target=amdgcn-amd-amdhsa -march=gfx803 -std=c++11
 TARGET = vlasov
 
 $(TARGET): $(OBJ)
@@ -14,5 +14,6 @@ $(OBJ): %.o: %.cpp
 .PHONY: clean
 clean:
 	-rm $(OBJ) $(TARGET)
-run: $(TARGET)
-	-./$(TARGET)
+
+run:$(TARGET)
+	./$(TARGET)

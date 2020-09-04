@@ -76,6 +76,7 @@ void Simulation::Run()
         }
 
         //x shift dt/2
+        //#pragma omp target teams distribute parallel for map(from:f_xshift)
         #pragma omp parallel for schedule(guided)
         for(int j = 0; j < nv; j++)
         {
@@ -108,6 +109,7 @@ void Simulation::Run()
             OutputMatrix(filename, poisson_solver.phi);
         }
         //v shift dt
+        //#pragma omp target teams distribute parallel for map(from:f_vshift)
         #pragma omp parallel for schedule(guided)
         for(int i = 0; i < nx; i++)
         {
@@ -126,6 +128,7 @@ void Simulation::Run()
         }
 
         //2nd x shift dt/2
+        //#pragma omp target teams distribute parallel for map(from:f)
         #pragma omp parallel for schedule(guided)
         for(int j = 0; j < nv; j++)
         {
