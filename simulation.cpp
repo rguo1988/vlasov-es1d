@@ -59,7 +59,7 @@ void Simulation::Run()
          << "   uai = " << setw(6) << uai << endl;
     cout << " datas = " << setw(6) << data_num << endl;
 
-    for(int n = 0; n < max_steps; n++)
+    for(int n = 0; n < max_steps + 1; n++)
     {
         //print running process
         int percent = 100 * n / (max_steps - 1);
