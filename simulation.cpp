@@ -55,8 +55,7 @@ void Simulation::Run()
     cout << "    wT = " << setw(6) << max_steps*dt
          << " steps = " << setw(6) << max_steps
          << "    dt = " << setw(6) << dt << endl;
-    cout << "   uae = " << setw(6) << uae
-         << "   uai = " << setw(6) << uai << endl;
+    cout << " kappa = " << setw(6) << kappa << endl;
     cout << " datas = " << setw(6) << data_num << endl;
 
     for(int n = 0; n < max_steps + 1; n++)
@@ -105,8 +104,8 @@ void Simulation::Run()
         if(n % data_steps == 0)
         {
             int nn = n / data_steps;
-            string filename = data_path + "phi" + to_string(nn);
-            OutputMatrix(filename, poisson_solver.phi);
+            string filename = data_path + "E" + to_string(nn);
+            OutputMatrix(filename, poisson_solver.E);
         }
         //v shift dt
         //#pragma omp target teams distribute parallel for map(from:f_vshift)
