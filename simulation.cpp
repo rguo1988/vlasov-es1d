@@ -46,17 +46,18 @@ void Simulation::Run()
     cout << "**********************************" << endl;
     cout << "Vlasov Simulation Start!" << endl;
     cout.setf(ios::left);
-    cout << "     L = " << setw(6) << L
-         << "    nx = " << setw(6) << nx
-         << "    dx = " << setw(6) << dx << endl;
-    cout << "  vmax = " << setw(6) << vmax
-         << "    nv = " << setw(6) << nv
-         << "    dv = " << setw(6) << dv << endl;
-    cout << "    wT = " << setw(6) << max_steps*dt
-         << " steps = " << setw(6) << max_steps
-         << "    dt = " << setw(6) << dt << endl;
-    cout << " kappa = " << setw(6) << kappa << endl;
-    cout << " datas = " << setw(6) << data_num << endl;
+    cout << "     L = " << setw(8) << L
+         << "    nx = " << setw(8) << nx
+         << "    dx = " << setw(8) << dx << endl;
+    cout << "  vmax = " << setw(8) << vmax
+         << "    nv = " << setw(8) << nv
+         << "    dv = " << setw(8) << dv << endl;
+    cout << "    wT = " << setw(8) << max_steps*dt
+         << " steps = " << setw(8) << max_steps
+         << "    dt = " << setw(8) << dt << endl;
+    cout << " kappa = " << setw(8) << kappa
+         << "     k = " << setw(8) << k << endl;
+    cout << " datas = " << setw(8) << data_num << endl;
 
     for(int n = 0; n < max_steps + 1; n++)
     {

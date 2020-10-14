@@ -11,13 +11,13 @@ class Input
 {
   protected:
     //general parameters
-    const double k = 0.3;
+    const double k = 0.05;
     const double L = 1 * 2 * M_PI / k; //simulaiton length
     //const double L = 80; //simulaiton length
     //const double k = 5 * 2 * M_PI / L;
     const double T = 1.0; //temperature
     const double m = 1.0;
-    const double vmax = 10;
+    const double vmax = 50;
     const double e = -1.0;
     const double lambda = sqrt(T / e / e);
 
@@ -29,10 +29,10 @@ class Input
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.01;
-    const int max_steps = 2000;
+    const int max_steps = 15000;
 
     //special parameters
-    const double d = 0.01;
+    const double d = 0.001;
     const double kappa = 5;
     //data recording
     const string data_path = "./data/";
