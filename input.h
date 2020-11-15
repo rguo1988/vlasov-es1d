@@ -1,60 +1,69 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * temperature wave in uniform kappa plasma
+ * formation of kappa stationary distribution in an inhomogeneous plasma
  ***********************************/
 #ifndef _input_h
 #define _input_h
 #include<cmath>
+#include<iostream>
+#include<iomanip>
 #include<string>
 using namespace std;
 class Input
 {
   protected:
     //general parameters
-    const double k = 0.05;
-    const double L = 1 * 2 * M_PI / k; //simulaiton length
-    //const double L = 80; //simulaiton length
-    //const double k = 5 * 2 * M_PI / L;
+    const double L = 80.0; //simulaiton length
+    const double k = 1 * 2.0 * M_PI / L;
     const double T = 1.0; //temperature
     const double m = 1.0;
-    const double vmax = 50;
+    const double vmax = 20;
     const double e = -1.0;
-    const double lambda = sqrt(T / e / e);
 
     //definition of simulation constant
-    static const int nx = 1001;//grid num is nx-1; grid point num is nx
+    static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 1001;
+    static const int nv = 2001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.01;
-    const int max_steps = 15000;
+    const double dt = 0.02;
+    const int max_steps = 100000;
 
     //special parameters
-    const double d = 0.001;
-    const double kappa = 5;
+    const double uae = 0.52;
+    const double uai = 0.5;
+    const double kappa = 0.0;
+    const double u = 0.0;
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 100;
+    const int data_steps = 10000;
     const int data_num = max_steps / data_steps + 1;
 
     double GetElecInitDistrib(double x, double v)
     {
         //f is distribution function normalized to 1, i.e. n=1
-        double fx = 1 + d * cos(k * x);
-        double fv = 0.0;
-        if (kappa == 0.0)
-            fv = sqrt(1.0 / (2 * M_PI * T)) * exp(-v * v / (2 * T));
-        else
-            //fv = sqrt(1.0 / (2 * M_PI * T * kappa)) * tgamma(kappa + 1.5) / tgamma(kappa + 1.0) * pow(1 + pow(v, 2) / (2 * T * kappa), -kappa - 1.5);
-            fv = sqrt(1.0 / (2 * M_PI * T * (kappa-1.5))) * tgamma(kappa) / tgamma(kappa - 0.5) * pow(1 + pow(v, 2) / (2 * T * (kappa - 1.5)), -kappa);
-        return fx * fv;
+        double rx = 1.0 + uae * cos(k * x) ;
+        //double rx = 1.0;
+        //double rv = sqrt(1.0 / (2 * M_PI * T * kappa)) * tgamma(kappa + 1.5) / tgamma(kappa + 1.0) * pow(1 + pow(v, 2) / (2 * T * kappa), -kappa-1.5);
+        double rv = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v - u, 2) / (2 * T));
+        return rx * rv;
     }
     double GetIonInitDistrib(double x, double v, double t)
     {
-        double fx = 1.0;
-        return fx;
+        double r = 1.0;
+        r = 1.0 + uai * cos(k * x);
+        return r;
+    }
+
+    void PrintSpecialParameters()
+    {
+        cout << "************************************" << endl;
+        cout << "Special Parameters: " << endl;
+        cout << " kappa = " << setw(8) << kappa
+             << "   uae = " << setw(8) << uae
+             << "   uai = " << setw(8) << uai << endl;
+        cout << "************************************" << endl;
     }
 };
 #endif

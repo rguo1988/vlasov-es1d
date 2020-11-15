@@ -43,21 +43,23 @@ void Simulation::Run()
     f_vshift.setZero();
 
     //show information
-    cout << "**********************************" << endl;
-    cout << "Vlasov Simulation Start!" << endl;
+    cout << "************************************" << endl;
+    cout << "Vlasov Simulation: Formation of Kappa distribution" << endl;
     cout.setf(ios::left);
-    cout << "     L = " << setw(8) << L
-         << "    nx = " << setw(8) << nx
-         << "    dx = " << setw(8) << dx << endl;
-    cout << "  vmax = " << setw(8) << vmax
-         << "    nv = " << setw(8) << nv
-         << "    dv = " << setw(8) << dv << endl;
-    cout << "    wT = " << setw(8) << max_steps*dt
-         << " steps = " << setw(8) << max_steps
-         << "    dt = " << setw(8) << dt << endl;
-    cout << " kappa = " << setw(8) << kappa
-         << "     k = " << setw(8) << k << endl;
-    cout << " datas = " << setw(8) << data_num << endl;
+    cout << "     L = " << setw(8) << setprecision(6) << L
+         << "    nx = " << setw(8) << setprecision(6) << nx
+         << "    dx = " << setw(8) << setprecision(6) << dx
+         << "     k = " << setw(8) << setprecision(6) << k << endl;
+    cout << "  vmax = " << setw(8) << setprecision(6) << vmax
+         << "    nv = " << setw(8) << setprecision(6) << nv
+         << "    dv = " << setw(8) << setprecision(6) << dv
+         << "     T = " << setw(8) << setprecision(6) << T << endl;
+    cout << "    wT = " << setw(8) << setprecision(6) << max_steps*dt
+         << " steps = " << setw(8) << setprecision(6) << max_steps
+         << "    dt = " << setw(8) << setprecision(6) << dt << endl;
+    cout << " datas = " << setw(8) << setprecision(6) << data_num << endl;
+
+    PrintSpecialParameters();
 
     for(int n = 0; n < max_steps + 1; n++)
     {
@@ -105,8 +107,8 @@ void Simulation::Run()
         if(n % data_steps == 0)
         {
             int nn = n / data_steps;
-            string filename = data_path + "E" + to_string(nn);
-            OutputMatrix(filename, poisson_solver.E);
+            string filename = data_path + "phi" + to_string(nn);
+            OutputMatrix(filename, poisson_solver.phi);
         }
         //v shift dt
         //#pragma omp target teams distribute parallel for map(from:f_vshift)
