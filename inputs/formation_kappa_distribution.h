@@ -5,31 +5,33 @@
 #ifndef _input_h
 #define _input_h
 #include<cmath>
+#include<iostream>
+#include<iomanip>
 #include<string>
 using namespace std;
 class Input
 {
   protected:
     //general parameters
-    const double L = 500.0; //simulaiton length
+    const double L = 80.0; //simulaiton length
     const double k = 1 * 2.0 * M_PI / L;
     const double T = 1.0; //temperature
     const double m = 1.0;
-    const double vmax = 5;
+    const double vmax = 20;
     const double e = -1.0;
 
     //definition of simulation constant
-    static const int nx = 401;//grid num is nx-1; grid point num is nx
+    static const int nx = 501;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 601;
+    static const int nv = 5001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.01;
-    const int max_steps = 200000;
+    const double dt = 0.2;
+    const int max_steps = 25000;
 
     //special parameters
-    const double uae = 0.51;
+    const double uae = 0.52;
     const double uai = 0.5;
     const double kappa = 0.0;
     const double u = 0.0;
@@ -52,6 +54,16 @@ class Input
         double r = 1.0;
         r = 1.0 + uai * cos(k * x);
         return r;
+    }
+
+    void PrintSpecialParameters()
+    {
+        cout << "************************************" << endl;
+        cout << "Special Parameters: " << endl;
+        cout << " kappa = " << setw(8) << kappa
+             << "   uae = " << setw(8) << uae
+             << "   uai = " << setw(8) << uai << endl;
+        cout << "************************************" << endl;
     }
 };
 #endif

@@ -21,14 +21,14 @@ class Input
     const double e = -1.0;
 
     //definition of simulation constant
-    static const int nx = 201;//grid num is nx-1; grid point num is nx
+    static const int nx = 501;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 2001;
+    static const int nv = 5001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.02;
-    const int max_steps = 100000;
+    const double dt = 0.2;
+    const int max_steps = 25000;
 
     //special parameters
     const double uae = 0.52;
