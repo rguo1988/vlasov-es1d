@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * inhomogeneous kappa distribution with analytic density
+ * waves in polytropic plasma
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -12,8 +12,10 @@ using namespace std;
 class Input
 {
   protected:
+    //title
+    const string title = "waves in polytropic plasma";
     //general parameters
-    const double k = 0.1;
+    const double k = 0.05;
     const double L = 2 * M_PI / k; //simulaiton length
     const double T = 1.0; //temperature
     const double m = 1.0;
@@ -22,21 +24,21 @@ class Input
     const double lambda = sqrt(T / e / e);
 
     //definition of simulation constant
-    static const int nx = 301;//grid num is nx-1; grid point num is nx
+    static const int nx = 1001;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 301;
+    static const int nv = 201;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.02;
+    const double dt = 0.01;
     const int max_steps = 10000;
 
     //special parameters
     //d must smaller than k^2*kappa
-    const double d = 0.0001;
+    const double d = 0.001;
     const double d_wave = 0.1;
-    const double k_wave = 0.3;
-    const double kappa = 15.0;
+    const double k_wave = 0.1;
+    const double kappa = 5.0;
     //data recording
     const string data_path = "./data/";
     const int data_steps = 10000;
@@ -75,11 +77,11 @@ class Input
     void PrintSpecialParameters()
     {
         cout << "************************************" << endl;
-        cout << "Special Parameters: " << endl;
-        cout << " kappa = " << setw(8) << kappa
-             << "k_wave = " << setw(8) << k_wave
-             << "d_wave = " << setw(8) << d_wave
-             << "     d = " << setw(8) << d << endl;
+        cout << " Special Parameters: " << endl;
+        cout << "   kappa = " << setw(8) << kappa
+             << "       d = " << setw(8) << d << endl;
+        cout << "  k_wave = " << setw(8) << k_wave
+             << "  d_wave = " << setw(8) << d_wave << endl;
         cout << "************************************" << endl;
     }
 };

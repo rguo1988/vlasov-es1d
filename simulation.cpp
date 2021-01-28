@@ -44,20 +44,20 @@ void Simulation::Run()
 
     //show information
     cout << "************************************" << endl;
-    cout << "Vlasov Simulation: Formation of Kappa distribution" << endl;
+    cout << " Vlasov Simulation: " << title << endl;
     cout.setf(ios::left);
-    cout << "     L = " << setw(8) << setprecision(6) << L
-         << "    nx = " << setw(8) << setprecision(6) << nx
-         << "    dx = " << setw(8) << setprecision(6) << dx
-         << "     k = " << setw(8) << setprecision(6) << k << endl;
-    cout << "  vmax = " << setw(8) << setprecision(6) << vmax
-         << "    nv = " << setw(8) << setprecision(6) << nv
-         << "    dv = " << setw(8) << setprecision(6) << dv
-         << "     T = " << setw(8) << setprecision(6) << T << endl;
-    cout << "    wT = " << setw(8) << setprecision(6) << max_steps*dt
-         << " steps = " << setw(8) << setprecision(6) << max_steps
-         << "    dt = " << setw(8) << setprecision(6) << dt << endl;
-    cout << " datas = " << setw(8) << setprecision(6) << data_num << endl;
+    cout << "       L = " << setw(8) << setprecision(6) << L
+         << "      nx = " << setw(8) << setprecision(6) << nx
+         << "      dx = " << setw(8) << setprecision(6) << dx
+         << "       k = " << setw(8) << setprecision(6) << k << endl;
+    cout << "    vmax = " << setw(8) << setprecision(6) << vmax
+         << "      nv = " << setw(8) << setprecision(6) << nv
+         << "      dv = " << setw(8) << setprecision(6) << dv
+         << "       T = " << setw(8) << setprecision(6) << T << endl;
+    cout << "      wT = " << setw(8) << setprecision(6) << max_steps*dt
+         << "   steps = " << setw(8) << setprecision(6) << max_steps
+         << "      dt = " << setw(8) << setprecision(6) << dt << endl;
+    cout << "   datas = " << setw(8) << setprecision(6) << data_num << endl;
 
     PrintSpecialParameters();
 
