@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * waves in polytropic plasma
+ * electron acoustic wave: plateau-Maxwellian PDF
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -13,75 +13,115 @@ class Input
 {
   protected:
     //title
-    const string title = "waves in polytropic plasma";
+    const string title = "electron acoustic wave: plateau-Maxwellian PDF";
+
     //general parameters
-    const double k = 0.05;
+    const double k = 0.4;
     const double L = 2 * M_PI / k; //simulaiton length
-    const double T = 1.0; //temperature
+    const double T = 1.0; //T for cold e
     const double m = 1.0;
+    const double v_th = sqrt(2 * T / m);
     const double vmax = 5;
     const double e = -1.0;
     const double lambda = sqrt(T / e / e);
 
-    //definition of simulation constant
-    static const int nx = 1001;//grid num is nx-1; grid point num is nx
+    //special parameters
+    const double d = 0.01;
+    const double v_0 = 1.56036;
+    const double dv_p = 0.01;
+    const double dv_p_min = sqrt(8 * d / k / k);
+    const int n_p = 10;
+    const double Z = GetNormalization();
+
+    //simulation constant
+    static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 201;
+    static const int nv = 8001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.01;
-    const int max_steps = 10000;
+    const double dt = 0.1;
+    const double dt_max = dv * m * k / abs(e) / d;
+    const int max_steps = 2000;
 
-    //special parameters
-    //d must smaller than k^2*kappa
-    const double d = 0.001;
-    const double d_wave = 0.1;
-    const double k_wave = 0.1;
-    const double kappa = 5.0;
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 10000;
+    const int data_steps = 200;
     const int data_num = max_steps / data_steps + 1;
 
-    //calculating the normalization
-    double B = d / (k * k * lambda * lambda * kappa );
-    double A = L * 1.0 / GetNormalization();
+
+    double f_p_unnorm(double v)
+    {
+        double fm = exp(-v * v / v_th / v_th) / sqrt(M_PI) / v_th;
+        double fm0 = exp(-v_0 * v_0 / v_th / v_th) / sqrt(M_PI) / v_th;
+        double D = 0.0;
+        if (v >= 0)
+            D = 1 + pow( ((v - v_0) / dv_p), n_p);
+        else
+            D = 1 + pow( ((v + v_0) / dv_p), n_p);
+        double N = fm - fm0;
+        double r = fm - N / D;
+        return r;
+    }
+
+    double f_m(double v)
+    {
+        double fm = exp(-v * v / v_th / v_th) / sqrt(M_PI) / v_th;
+        return fm;
+    }
+
+    double GetNormalization()
+    {
+        double n = 0.0;
+        int N = 100000;
+        double v_lim = 100;
+        double dv_lim = 2 * v_lim / N;
+        for (int i = 0; i < N; i++)
+        {
+            n += f_p_unnorm(-v_lim + i * dv_lim) ;
+        }
+        n *= dv_lim;
+        return n;
+    }
 
     double GetElecInitDistrib(double x, double v)
     {
-        //f is distribution function normalized to 1, i.e. n=1
-        double fx = A * pow(1.0 - B * cos(k * x), -kappa - 1);
-        //double fx = 1.0;
-        double wave = 1.0 + d_wave * cos(k_wave * x);
-        double Tx = T * pow(fx, -1.0 / (kappa + 1.0));
-        //double Tx = T;
-        double fv = sqrt(1.0 / (2 * M_PI * Tx * kappa)) * tgamma(kappa + 1.5) / tgamma(kappa + 1.0) * pow(1 + pow(v, 2) / (2 * Tx * kappa), -kappa - 1.5);
-        //double fv = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v, 2) / (2 * T));
-        return wave * fx * fv;
+        double wave = 1.0 + d * cos(k * x);
+        //return wave * f_p_unnorm(v) / Z;
+        return wave * f_m(v);
     }
+
     double GetIonInitDistrib(double x, double v, double t)
     {
-        double fx = A * pow(1.0 - B * cos(k * x), -kappa - 1) + d * cos(k * x);
-        return fx;
+        return 1.0;
     }
-    double GetNormalization()
+
+    double E_External(double x, double t)
     {
-        double sum = 0.0;
-        for (int i = 0; i < nx_grids; i++)
-        {
-            sum += pow(1.0 - B * cos(k * i * dx), -kappa - 1);
-        }
-        return sum * dx;
+        double T = 2 * M_PI / k / v_0;
+        double dtau = 10 * T;
+        double tau = 20 * T;
+        double g = 1.0 / (
+                       1 + pow((t - tau) / dtau, 10)
+                   );
+        double r = d * g * sin(k * x - k * v_0 * t);
+        return r;
     }
+
     void PrintSpecialParameters()
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "   kappa = " << setw(8) << kappa
-             << "       d = " << setw(8) << d << endl;
-        cout << "  k_wave = " << setw(8) << k_wave
-             << "  d_wave = " << setw(8) << d_wave << endl;
+        cout << "       Z = " << setw(8) << Z
+             << "    v_th = " << setw(8) << v_th
+             << "     v_0 = " << setw(8) << v_0 << endl;
+        cout << "    dv_p = " << setw(8) << dv_p
+             << "     n_p = " << setw(8) << n_p << endl;
+        cout << "       d = " << setw(8) << d << endl;
+        cout << "************************************" << endl;
+        cout << " Parameters Max/Min: " << endl;
+        cout << "  dt_max = " << setw(8) << dt_max << endl;
+        cout << "  dv_p_min = " << setw(8) << dv_p_min << endl;
         cout << "************************************" << endl;
     }
 };

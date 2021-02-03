@@ -119,7 +119,7 @@ void Simulation::Run()
             CubicSplineInterp1D cubic_spline_interp_v(v_samples, f_fixed_x_samples, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
             for(int j = 1; j < nv; j++)
             {
-                v_shift = v_samples(j) - (e / m) * poisson_solver.GetEVal(i) * dt;
+                v_shift = v_samples(j) - (e / m) * (poisson_solver.GetEVal(i) + E_External(i * dx, n * dt) ) * dt;
                 //when v is out of range, f =0
                 f_vshift(i, j) =  0.0;
                 if(v_shift < vmax || v_shift > -vmax)
@@ -148,7 +148,8 @@ void Simulation::Run()
         double Ek_sum = 0.0;
         for(int i = 0; i < nx - 1; i++)
         {
-            E_sum += poisson_solver.GetEVal(i) * poisson_solver.GetEVal(i);
+            double E_temp = poisson_solver.GetEVal(i) + E_External(i * dx, n * dt);
+            E_sum +=  E_temp * E_temp;
             for(int j = 0; j < nv - 1; j++)
             {
                 Ek_sum += m * pow(-vmax + j * dv, 2) * f(i, j);
