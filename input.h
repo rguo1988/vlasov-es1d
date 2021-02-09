@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * electron acoustic wave: plateau-Maxwellian PDF
+ * formation of kappa stationary distribution in an inhomogeneous plasma
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -13,115 +13,88 @@ class Input
 {
   protected:
     //title
-    const string title = "electron acoustic wave: plateau-Maxwellian PDF";
+    const string title = "formation of kappa stationary distribution";
 
     //general parameters
-    const double k = 0.4;
-    const double L = 2 * M_PI / k; //simulaiton length
-    const double T = 1.0; //T for cold e
+    const double L = 80.0; //simulaiton length
+    const double k = 1 * 2.0 * M_PI / L;
+    const double T = 1.0; //temperature
     const double m = 1.0;
-    const double v_th = sqrt(2 * T / m);
-    const double vmax = 5;
+    const double vmax = 10;
     const double e = -1.0;
-    const double lambda = sqrt(T / e / e);
+    const double n = 1.0;
+    const double w_p = sqrt(n*e*e / m);
+    const double l_D = sqrt(T / n*e*e);
+    const bool if_E_External = false;
 
     //special parameters
-    const double d = 0.001;
-    const double v_0 = 1.56036;
-    const double dv_p = 0.3;
-    const double dv_p_min = sqrt(4 * d / k / k);
-    const int n_p = 10;
-    const double Z = GetNormalization();
+    const double uae = 0.8;
+    const double uai = 0.8;
+    const double kappa = 0.0;
+    const double u = 0.5;
+    const double dtau = 100;
+    const double tau = 3 * dtau;
 
     //simulation constant
     static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 2001;
+    static const int nv = 1001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.1;
-    const double dt_max = dv * m * k / abs(e) / d;
-    const int max_steps = 2000;
+    const double dt = 0.02;
+    const int max_steps = 100000;
+    const double dt_max = dv * m * k / abs(e * (uae - uai));
+
 
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 200;
+    const int data_steps = 10000;
     const int data_num = max_steps / data_steps + 1;
-
-
-    double f_p_unnorm(double v)
-    {
-        double fm = exp(-v * v / v_th / v_th) / sqrt(M_PI) / v_th;
-        double fm0 = exp(-v_0 * v_0 / v_th / v_th) / sqrt(M_PI) / v_th;
-        double D = 0.0;
-        if (v >= 0)
-            D = 1 + pow( ((v - v_0) / dv_p), n_p);
-        else
-            D = 1 + pow( ((v + v_0) / dv_p), n_p);
-        double N = fm - fm0;
-        double r = fm - N / D;
-        return r;
-    }
-
-    double f_m(double v)
-    {
-        double fm = exp(-v * v / v_th / v_th) / sqrt(M_PI) / v_th;
-        return fm;
-    }
-
-    double GetNormalization()
-    {
-        double n = 0.0;
-        int N = 100000;
-        double v_lim = 100;
-        double dv_lim = 2 * v_lim / N;
-        for (int i = 0; i < N; i++)
-        {
-            n += f_p_unnorm(-v_lim + i * dv_lim) ;
-        }
-        n *= dv_lim;
-        return n;
-    }
 
     double GetElecInitDistrib(double x, double v)
     {
-        double wave = 1.0 + d * cos(k * x);
-        //return wave * f_p_unnorm(v) / Z;
-        return wave * f_m(v);
+        //f is distribution function normalized to 1, i.e. n=1
+        double rx = 1.0 + uae * cos(k * x) ;
+        //double rx = 1.0;
+        //double rv = sqrt(1.0 / (2 * M_PI * T * kappa)) * tgamma(kappa + 1.5) / tgamma(kappa + 1.0) * pow(1 + pow(v, 2) / (2 * T * kappa), -kappa-1.5);
+        double rv = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v - u, 2) / (2 * T));
+        return rx * rv;
     }
 
     double GetIonInitDistrib(double x, double v, double t)
     {
-        return 1.0;
+        //double g = 1.0 / (1 + exp(-5 * (t - tau) / dtau));
+        double r = 1.0 + uai * cos(k * x);
+        return r;
     }
 
     double E_External(double x, double t)
     {
-        //double T = 2 * M_PI / k / v_0;
-        //double dtau = 10 * T;
-        //double tau = 20 * T;
-        //double g = 1.0 / (
-                       //1 + pow((t - tau) / dtau, 10)
-                   //);
-        //double r = d * g * sin(k * x - k * v_0 * t);
-        return 0.0;
+        double r = 0.0;
+        if (if_E_External)
+        {
+            double w = 1.009;
+            double tau1 = 3 * dtau;
+            double tau2 = 8 * dtau;
+            double g1 = 1.0 / ( 1 + exp(-5 * (t - tau1) / dtau));
+            double g2 = 1.0 / ( 1 + exp( 5 * (t - tau2) / dtau));
+            r = 0.01 * (g1 + g2 - 1.0) * cos(k * x + w * t);
+        }
+        return r;
     }
 
     void PrintSpecialParameters()
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "       Z = " << setw(8) << Z
-             << "    v_th = " << setw(8) << v_th
-             << "     v_0 = " << setw(8) << v_0 << endl;
-        cout << "    dv_p = " << setw(8) << dv_p
-             << "     n_p = " << setw(8) << n_p << endl;
-        cout << "       d = " << setw(8) << d << endl;
+        cout << "    kappa = " << setw(6) << kappa
+             << "      uae = " << setw(6) << uae
+             << "      uai = " << setw(6) << uai << endl;
+        cout << "        u = " << setw(6) << u << endl;
         cout << "************************************" << endl;
         cout << " Parameters Max/Min: " << endl;
-        cout << "  dt_max = " << setw(8) << dt_max << endl;
-        cout << "dv_p_min = " << setw(8) << dv_p_min << endl;
+        cout << "   dt_max = " << setw(6) << dt_max << endl;
         cout << "************************************" << endl;
     }
 };
