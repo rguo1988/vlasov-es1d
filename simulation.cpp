@@ -48,24 +48,24 @@ void Simulation::Run()
     cout.setf(ios::left);
     cout << "************************************" << endl;
     cout << " Plasma Parameters: " << endl;
-    cout << "        k = " << setw(6) << setprecision(3) << k
-         << "        T = " << setw(6) << setprecision(6) << T
-         << "      w_p = " << setw(6) << setprecision(6) << w_p
-         << "      l_D = " << setw(6) << setprecision(6) << l_D << endl;
+    cout << "        k = " << setw(8) << setprecision(3) << k
+         << "        T = " << setw(8) << setprecision(6) << T
+         << "      w_p = " << setw(8) << setprecision(6) << w_p
+         << "      l_D = " << setw(8) << setprecision(6) << l_D << endl;
     string ifEEx = if_E_External?"On":"Off";
-    cout << "     E_Ex = " << setw(6) << setprecision(6) <<ifEEx << endl;
+    cout << "     E_Ex = " << setw(8) << setprecision(6) <<ifEEx << endl;
     cout << "************************************" << endl;
     cout << " Simulation Parameters: " << endl;
-    cout << "        L = " << setw(6) << setprecision(6) << L
-         << "       nx = " << setw(6) << setprecision(6) << nx
-         << "       dx = " << setw(6) << setprecision(6) << dx << endl;
-    cout << "     vmax = " << setw(6) << setprecision(6) << vmax
-         << "       nv = " << setw(6) << setprecision(6) << nv
-         << "       dv = " << setw(6) << setprecision(6) << dv << endl;
-    cout << "       wT = " << setw(6) << setprecision(6) << max_steps*dt
-         << "    steps = " << setw(6) << setprecision(6) << max_steps
-         << "       dt = " << setw(6) << setprecision(6) << dt << endl;
-    cout << "  dataNum = " << setw(6) << setprecision(6) << data_num << endl;
+    cout << "        L = " << setw(8) << setprecision(6) << L
+         << "       nx = " << setw(8) << setprecision(6) << nx
+         << "       dx = " << setw(8) << setprecision(6) << dx << endl;
+    cout << "     vmax = " << setw(8) << setprecision(6) << vmax
+         << "       nv = " << setw(8) << setprecision(6) << nv
+         << "       dv = " << setw(8) << setprecision(6) << dv << endl;
+    cout << "       wT = " << setw(8) << setprecision(6) << max_steps*dt
+         << "    steps = " << setw(8) << setprecision(6) << max_steps
+         << "       dt = " << setw(8) << setprecision(6) << dt << endl;
+    cout << "  dataNum = " << setw(8) << setprecision(6) << data_num << endl;
 
     PrintSpecialParameters();
 
