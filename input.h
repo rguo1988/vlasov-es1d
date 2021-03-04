@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
-    electron acoustic wave: two-temperature electrons
+    electron acoustic wave: two-temperature electrons(Impossible)
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -13,14 +13,14 @@ class Input
 {
   protected:
     //title
-    const string title = "electron acoustic wave: two-temperature electrons";
+    const string title = "electron acoustic wave: two-kappa electrons";
 
     //general parameters
-    const double k = 0.7;
+    const double k = 0.6;
     const double L = 2 * M_PI / k; //simulaiton length
-    const double T = 1.0; //average temperature for all electrons
+    const double T = 5.0; //average temperature for all electrons
     const double m = 1.0;
-    const double vmax = 6;
+    const double vmax = 15;
     const double e = -1.0;
     const double n = 1.0;
     const double w_p = sqrt(n*e*e / m);
@@ -28,24 +28,23 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double nc = 0.2;
-    const double nh = n - nc;
-    const double b = 100; //ratio of Th/Tc
-    const double Tc = 0.01;//n * T / (nc + nh*b);
-    const double Th = b * Tc;
-    const double l_D_c = sqrt(Tc / nc);
-    const double l_D_h = sqrt(Th / nh);
+    const double ns = 0.1;
+    const double nf = n - ns;
+    const double kappa_s = 1.501;
+    const double kappa_f = 100.0;
+    const double l_D_c = sqrt(T / ns);
+    const double l_D_h = sqrt(T / nf);
     const double d = 1e-3;
 
     //simulation constant
     static const int nx = 401;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 601;
+    static const int nv = 1001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.01;
-    const int max_steps = 30000;
+    const int max_steps = 10000;
     const double dt_max = dv * m * k / abs(e * d);
 
 
@@ -58,12 +57,12 @@ class Input
     {
         //f is distribution function normalized to 1, i.e. n=1
         double rx = 1.0 + d * cos(k * x) ;
-        //double rx = 1.0;
-        //double rv = sqrt(1.0 / (2 * M_PI * T * kappa)) * tgamma(kappa + 1.5) / tgamma(kappa + 1.0) * pow(1 + pow(v, 2) / (2 * T * kappa), -kappa-1.5);
-        double rvc = nc * sqrt(1.0 / (2 * M_PI * Tc)) * exp(- pow(v, 2) / (2 * Tc));
-        double rvh = nh * sqrt(1.0 / (2 * M_PI * Th)) * exp(- pow(v, 2) / (2 * Th));
+        double As = ns / sqrt(2 * M_PI * T * (kappa_s - 1.5)) * tgamma(kappa_s) / tgamma(kappa_s - 0.5);
+        double Af = nf / sqrt(2 * M_PI * T * (kappa_f - 1.5)) * tgamma(kappa_f) / tgamma(kappa_f - 0.5);
+        double rvs = pow(1 + v * v / (2 * T * (kappa_s - 1.5)), -kappa_s);
+        double rvf = pow(1 + v * v / (2 * T * (kappa_f - 1.5)), -kappa_f);
 
-        return rx * (rvc + rvh);
+        return rx * (As * rvs + Af * rvf);
     }
 
     double GetIonInitDistrib(double x, double v, double t)
@@ -91,11 +90,10 @@ class Input
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "       nc = " << setw(8) << nc
-             << "       nh = " << setw(8) << nh << endl;
-        cout << "       Tc = " << setw(8) << Tc
-             << "       Th = " << setw(8) << Th
-             << "    Th/Tc = " << setw(8) << b << endl;
+        cout << "       nc = " << setw(8) << ns
+             << "       nh = " << setw(8) << nf << endl;
+        cout << "  kappa_c = " << setw(8) << kappa_s
+             << "  kappa_h = " << setw(8) << kappa_f << endl;
         cout << "    l_D_c = " << setw(8) << l_D_c
              << "    l_D_h = " << setw(8) << l_D_h << endl;
         cout << "  k*l_D_c = " << setw(8) << k*l_D_c
