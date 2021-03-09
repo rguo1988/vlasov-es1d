@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
-    electron acoustic instability: two-temperature electrons
+    electron acoustic wave: two-temperature electrons
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -16,9 +16,9 @@ class Input
     const string title = "electron acoustic wave: two-kappa electrons";
 
     //general parameters
-    const double k = 0.9;
+    const double k = 0.6;
     const double L = 2 * M_PI / k; //simulaiton length
-    const double T = 1.0; //average temperature for all electrons
+    const double T = 5.0; //average temperature for all electrons
     const double m = 1.0;
     const double vmax = 20;
     const double e = -1.0;
@@ -28,15 +28,13 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double ns = 0.2;
+    const double ns = 0.79;
     const double nf = n - ns;
-    const double kappa_s = 1.501;
+    const double kappa_s = 1.51;
     const double kappa_f = 100.0;
     const double l_D_c = sqrt(T / ns);
     const double l_D_h = sqrt(T / nf);
     const double d = 1e-3;
-    const double u_s = 20 * sqrt((2 - 3 / kappa_s)*T / m);
-    const double u_f = 0.0;
 
     //simulation constant
     static const int nx = 401;//grid num is nx-1; grid point num is nx
@@ -46,7 +44,7 @@ class Input
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.01;
-    const int max_steps = 20000;
+    const int max_steps = 10000;
     const double dt_max = dv * m * k / abs(e * d);
 
 
@@ -60,9 +58,9 @@ class Input
         //f is distribution function normalized to 1, i.e. n=1
         double rx = 1.0 + d * cos(k * x) ;
         double As = ns / sqrt(2 * M_PI * T * (kappa_s - 1.5)) * tgamma(kappa_s) / tgamma(kappa_s - 0.5);
-        double Af = nf / sqrt(2 * M_PI * T);
-        double rvs = pow(1 + (v-u_s) * (v-u_s) / (2 * T * (kappa_s - 1.5)), -kappa_s);
-        double rvf = exp(-(v-u_f)*(v-u_f)/2/T);
+        double Af = nf / sqrt(2 * M_PI * T * (kappa_f - 1.5)) * tgamma(kappa_f) / tgamma(kappa_f - 0.5);
+        double rvs = pow(1 + v * v / (2 * T * (kappa_s - 1.5)), -kappa_s);
+        double rvf = pow(1 + v * v / (2 * T * (kappa_f - 1.5)), -kappa_f);
 
         return rx * (As * rvs + Af * rvf);
     }
@@ -96,8 +94,6 @@ class Input
              << "       nh = " << setw(8) << nf << endl;
         cout << "  kappa_c = " << setw(8) << kappa_s
              << "  kappa_h = " << setw(8) << kappa_f << endl;
-        cout << "      u_s = " << setw(8) << u_s
-             << "      u_f = " << setw(8) << u_f << endl;
         cout << "    l_D_c = " << setw(8) << l_D_c
              << "    l_D_h = " << setw(8) << l_D_h << endl;
         cout << "  k*l_D_c = " << setw(8) << k*l_D_c
