@@ -13,14 +13,14 @@ class Input
 {
   protected:
     //title
-    const string title = "electron acoustic instability: two-temperature electrons";
+    const string title = "electron acoustic wave: two-kappa electrons";
 
     //general parameters
-    const double k = 2.0;
+    const double k = 1.2;
     const double L = 2 * M_PI / k; //simulaiton length
     const double T = 1.0; //average temperature for all electrons
     const double m = 1.0;
-    const double vmax = 6;
+    const double vmax = 10;
     const double e = -1.0;
     const double n = 1.0;
     const double w_p = sqrt(n*e*e / m);
@@ -28,18 +28,18 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double nc = 0.5;
-    const double nh = n - nc;
-    const double b = 100; //ratio of Th/Tc
-    const double Tc = 0.01;//n * T / (nc + nh*b);
-    const double Th = b * Tc;
-    const double l_D_c = sqrt(Tc / nc);
-    const double l_D_h = sqrt(Th / nh);
-    const double uc = 15*sqrt(2*Tc/m);
+    const double ns = 0.2;
+    const double nf = n - ns;
+    const double kappa_s = 1.501;
+    //const double kappa_f = 100.0;
+    const double l_D_c = sqrt(T / ns);
+    const double l_D_h = sqrt(T / nf);
     const double d = 1e-6;
+    const double u_f = 25 * sqrt((2 - 3 / kappa_s) * T / m);
+    const double u_s = 0.0;
 
     //simulation constant
-    static const int nx = 401;//grid num is nx-1; grid point num is nx
+    static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
     static const int nv = 1001;
     static const int nv_grids = nv - 1;
@@ -59,12 +59,14 @@ class Input
     {
         //f is distribution function normalized to 1, i.e. n=1
         double rx = 1.0 + d * cos(k * x) ;
-        //double rx = 1.0;
-        //double rv = sqrt(1.0 / (2 * M_PI * T * kappa)) * tgamma(kappa + 1.5) / tgamma(kappa + 1.0) * pow(1 + pow(v, 2) / (2 * T * kappa), -kappa-1.5);
-        double rvc = nc * sqrt(1.0 / (2 * M_PI * Tc)) * exp(- pow(v-uc, 2) / (2 * Tc));
-        double rvh = nh * sqrt(1.0 / (2 * M_PI * Th)) * exp(- pow(v, 2) / (2 * Th));
 
-        return rx * (rvc + rvh);
+        double As = ns / sqrt(2 * M_PI * T * (kappa_s - 1.5)) * tgamma(kappa_s) / tgamma(kappa_s - 0.5);
+        double rvs = pow(1 + (v - u_s) * (v - u_s) / (2 * T * (kappa_s - 1.5)), -kappa_s);
+
+        double Af = nf / sqrt(2 * M_PI * T);
+        double rvf = exp(-(v - u_f) * (v - u_f) / 2 / T);
+
+        return rx * (As * rvs + Af * rvf);
     }
 
     double GetIonInitDistrib(double x, double v, double t)
@@ -92,11 +94,12 @@ class Input
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "       nc = " << setw(8) << nc
-             << "       nh = " << setw(8) << nh << endl;
-        cout << "       Tc = " << setw(8) << Tc
-             << "       Th = " << setw(8) << Th
-             << "    Th/Tc = " << setw(8) << b << endl;
+        cout << "       nc = " << setw(8) << ns
+             << "       nh = " << setw(8) << nf << endl;
+        cout << "  kappa_c = " << setw(8) << kappa_s
+             << "  kappa_h = " << setw(8) << "inf" << endl;
+        cout << "      u_s = " << setw(8) << u_s
+             << "      u_f = " << setw(8) << u_f << endl;
         cout << "    l_D_c = " << setw(8) << l_D_c
              << "    l_D_h = " << setw(8) << l_D_h << endl;
         cout << "  k*l_D_c = " << setw(8) << k*l_D_c
