@@ -16,7 +16,7 @@ class Input
     const string title = "electron acoustic wave: two-kappa electrons";
 
     //general parameters
-    const double k = 1.2;
+    const double k = 0.4;
     const double L = 2 * M_PI / k; //simulaiton length
     const double T = 1.0; //average temperature for all electrons
     const double m = 1.0;
@@ -35,18 +35,18 @@ class Input
     const double l_D_c = sqrt(T / ns);
     const double l_D_h = sqrt(T / nf);
     const double d = 1e-6;
-    const double u_f = 25 * sqrt((2 - 3 / kappa_s) * T / m);
+    const double u_f = 20 * sqrt((2 - 3 / kappa_s) * T / m);
     const double u_s = 0.0;
 
     //simulation constant
     static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 1001;
+    static const int nv = 1501;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.02;
-    const int max_steps = 10000;
+    const int max_steps = 8000;
     const double dt_max = dv * m * k / abs(e * d);
 
 
