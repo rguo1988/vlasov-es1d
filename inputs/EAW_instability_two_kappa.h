@@ -13,10 +13,10 @@ class Input
 {
   protected:
     //title
-    const string title = "electron acoustic wave: two-kappa electrons";
+    const string title = "electron acoustic instability: two-kappa electrons";
 
     //general parameters
-    const double k = 0.4;
+    const double k = 0.7;
     const double L = 2 * M_PI / k; //simulaiton length
     const double T = 1.0; //average temperature for all electrons
     const double m = 1.0;
@@ -28,25 +28,28 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double ns = 0.2;
+    const double ns = 0.75;
     const double nf = n - ns;
-    const double kappa_s = 1.501;
+    const double kappa_s = 1.52;
     //const double kappa_f = 100.0;
     const double l_D_c = sqrt(T / ns);
     const double l_D_h = sqrt(T / nf);
-    const double d = 1e-10;
-    const double u_s = 20 * sqrt((2 - 3 / kappa_s) * T / m);
-    const double u_f = 0.0;
+    const double d = 1e-3;
+    const double a = 10;
+    const double v_s = sqrt((2 - 3 / kappa_s) * T / m);
+    const double v_f = sqrt(2 * T / m);
+    const double u_f = a * sqrt((2 - 3 / kappa_s) * T / m);
+    const double u_s = 0.0;
 
     //simulation constant
     static const int nx = 201;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 1001;
+    static const int nv = 2001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.02;
-    const int max_steps = 10000;
+    const int max_steps = 5000;
     const double dt_max = dv * m * k / abs(e * d);
 
 
@@ -98,10 +101,11 @@ class Input
              << "       nh = " << setw(8) << nf << endl;
         cout << "  kappa_c = " << setw(8) << kappa_s
              << "  kappa_h = " << setw(8) << "inf" << endl;
+        cout << "      v_s = " << setw(8) << v_s
+             << "      v_f = " << setw(8) << v_f << endl;
         cout << "      u_s = " << setw(8) << u_s
-             << "      u_f = " << setw(8) << u_f << endl;
-        cout << "    l_D_c = " << setw(8) << l_D_c
-             << "    l_D_h = " << setw(8) << l_D_h << endl;
+             << "      u_f = " << setw(8) << u_f
+             << "        a = " << setw(8) << a << endl;
         cout << "  k*l_D_c = " << setw(8) << k*l_D_c
              << "  k*l_D_h = " << setw(8) << k*l_D_h << endl;
         cout << "        d = " << setw(8) << d << endl;
