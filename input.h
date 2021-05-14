@@ -29,24 +29,24 @@ class Input
     //
     //general parameters
     const double kls = 3.0;
-    const double k = kls/l_s;
+    const double k = kls / l_s;
     const double L = 2 * M_PI / k; //simulaiton length
     const double vmax = 10;
     const double w_p = sqrt(n*e*e / m);
     const double l_D = sqrt(T / n*e*e);
     const bool if_E_External = false;
-    const double d = 2e-2;
+    const double d = 1e-3;
 
     //simulation constant
-    static const int nx = 201;//grid num is nx-1; grid point num is nx
+    static const int nx = 1501;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 1001;
+    static const int nv = 801;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.01;
-    const int max_steps = 5000;
-    const double dt_max = dv * m * k / abs(e * d);
+    const double dt = 0.002;
+    const int max_steps = 10000;
+    const double dt_max = min(dx / vmax, dv * m * k / abs(e * d));
 
 
     //data recording
