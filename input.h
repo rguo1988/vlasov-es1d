@@ -17,18 +17,18 @@ class Input
 
     //special parameters
     const double n = 1.0;
-    const double ns = 0.7;
+    const double ns = 0.75;
     const double nf = n - ns;
     const double T = 1.0; //average temperature for all electrons
     const double m = 1.0;
     const double e = -1.0;
     const double kappa_s = 1.501;
-    const double kappa_f = 10;
+    const double kappa_f = 20;
     const double l_s = sqrt(T / ns);
     const double l_f = sqrt(T / nf);
     //
     //general parameters
-    const double kls = 3.0;
+    const double kls = 4.0;
     const double k = kls / l_s;
     const double L = 2 * M_PI / k; //simulaiton length
     const double vmax = 10;
@@ -38,20 +38,20 @@ class Input
     const double d = 1e-3;
 
     //simulation constant
-    static const int nx = 1501;//grid num is nx-1; grid point num is nx
+    static const int nx = 200;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 801;
+    static const int nv = 4000;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.002;
-    const int max_steps = 10000;
+    const double dt = 0.005;
+    const int max_steps = 8000;
     const double dt_max = min(dx / vmax, dv * m * k / abs(e * d));
 
 
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 2000;
+    const int data_steps = max_steps;
     const int data_num = max_steps / data_steps + 1;
 
     double GetElecInitDistrib(double x, double v)
