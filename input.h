@@ -16,7 +16,7 @@ class Input
     const string title = "EOS under slow waves";
 
     //general parameters
-    const double k = 1.0;
+    const double k = 0.5;
     const double L = 2 * M_PI / k; //simulaiton length
     const double T = 1.0; //T for cold e
     const double n = 1.0;
@@ -29,9 +29,9 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double d = 0.001;
-    const double v_0 = 0.5;
-    const double dv_p = 0.3;
+    const double d = 1e-2;
+    const double v_0 = 1.5;
+    const double dv_p = 0.02;
     const double dv_p_min = sqrt(4 * d / k / k);
     const int n_p = 10;
     const double Z = GetNormalization();
@@ -40,13 +40,13 @@ class Input
     //simulation constant
     static const int nx = 200;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 2000;
+    static const int nv = 4000;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.02;
-    const double dt_max = dv * m * k / abs(e) / d;
-    const int max_steps = 10000;
+    const double dt = 0.1;
+    const double dt_max = min(dx / vmax, dv * m * k / abs(e * d));
+    const int max_steps = 2000;
 
     //data recording
     const string data_path = "./data/";
