@@ -28,22 +28,22 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double u = 4;
+    const double u = 5;
     const double b = 0.0;
     const double d = 0.4;//initial disturbance
-    const double del = 20;
+    const double del = 4;
     const double Z = GetNormalizationSD();
     //const double Z = GetNormalizationDD();
 
     //simulation constant
-    static const int nx = 500;//grid num is nx-1; grid point num is nx
+    static const int nx = 400;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 1000;
+    static const int nv = 800;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.005;
-    const int max_steps = 20000;
+    const double dt = 0.01;
+    const int max_steps = 40000;
     const double dt_max = min(dx / vmax, dv * m * k / abs(e * d));
 
 
@@ -55,13 +55,13 @@ class Input
     double SchamelDistribution(double x, double v)
     {
         double xp = (x - L / 2) / del;
-        //double ph = d * (1 - exp(-xp * xp));
         double ph = d / pow(cosh(xp), 4);
-        double w = pow(v - u, 2) - 2 * ph;
+        double v_waveframe = v;
+        double w = pow(v_waveframe, 2) - 2 * ph;
         double r = 0.0;
-        if (v <= u - sqrt(2 * ph))
+        if (v_waveframe <= -sqrt(2 * ph))
             r = exp(- pow(-sqrt(w) + u, 2) / (2 * T));
-        else if (v >= u + sqrt(2 * ph))
+        else if (v_waveframe >= sqrt(2 * ph))
             r = exp(- pow( sqrt(w) + u, 2) / (2 * T));
         else
             r = exp(-b * w * w / 2 - u * u / 2);
