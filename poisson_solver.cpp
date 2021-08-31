@@ -11,11 +11,15 @@
 
 using namespace Eigen;
 
-PoissonSolverPeriodicBC::PoissonSolverPeriodicBC(VectorXd _rho, double _dx): nx(_rho.size()), dx(_dx)
+PoissonSolver::PoissonSolver(VectorXd _rho, double _dx): nx(_rho.size()), dx(_dx)
 {
     rho = _rho;
     phi.resize(nx);
     E.resize(nx);
+}
+
+PoissonSolverPeriodicBC::PoissonSolverPeriodicBC(VectorXd _rho, double _dx): PoissonSolver(_rho, _dx)
+{
     Calculate();
 }
 
@@ -65,11 +69,8 @@ void PoissonSolverPeriodicBC::Calculate()
     E[nx - 1] = E[0];
 }
 
-PoissonSolverDirichletBC::PoissonSolverDirichletBC(VectorXd _rho, double _dx, double c1, double c2): nx(_rho.size()), dx(_dx)
+PoissonSolverDirichletBC::PoissonSolverDirichletBC(VectorXd _rho, double _dx, double c1, double c2): PoissonSolver(_rho, _dx)
 {
-    rho = _rho;
-    phi.resize(nx);
-    E.resize(nx);
     phi[0] = c1;
     phi[nx - 1] = c2;
     Calculate();
@@ -111,13 +112,10 @@ void PoissonSolverDirichletBC::Calculate()
     }
 }
 
-PoissonSolverNaturalBC::PoissonSolverNaturalBC(VectorXd _rho, double _dx, double _d1, double _d2): nx(_rho.size()), dx(_dx), d1(_d1), d2(_d2)
+PoissonSolverNaturalBC::PoissonSolverNaturalBC(VectorXd _rho, double _dx, double _d1, double _d2): PoissonSolver(_rho, _dx), d1(_d1), d2(_d2)
 {
-    rho = _rho;
     rho[1] -= d1 / dx;
     rho[nx - 1] += d2 / dx;
-    phi.resize(nx);
-    E.resize(nx);
     Calculate();
 }
 
@@ -144,7 +142,7 @@ void PoissonSolverNaturalBC::Calculate()
         b[i + 1] = (-rho[i] * dx2 - b[i]) / (r[i] - 2);
     }
 
-    std::cout<<r[nx-2]<<std::endl;
+    std::cout << r[nx - 2] << std::endl;
     phi(nx - 1) = (-rho(nx - 1) * dx2 - b[nx - 1]) / (r[nx - 1] - 1.0);
     for(int j = nx - 1; j >= 2; j--)
     {

@@ -17,7 +17,7 @@ class Input
     const double L = 2 * M_PI / k; //simulaiton length
     const double T = 0.1; //temperature
     const double m = 1.0;
-    const double vmax = 4;//10.0 * sqrt(temperature / m);
+    const double vmax = 5;//10.0 * sqrt(temperature / m);
     const double e = -1.0;
     const double n = 1.0;
     const double w_p = sqrt(n*e*e / m);
@@ -27,17 +27,17 @@ class Input
     //special parameters
     const double u1 = 1.2; //drift speed of stream 1
     const double u2 = -1.2; //drift speed of stream 2
-    const double d = 0.02;
+    const double d = 0.01;
 
     //definition of simulation constant
-    static const int nx = 1000;//grid num is nx-1; grid point num is nx
+    static const int nx = 400;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
     static const int nv = 500;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.01;
-    const int max_steps = 300;
+    const int max_steps = 10000;
     const double dt_max = min(dx / vmax, dv * m * k / abs(e * d));
     //
     //data saveing
@@ -49,8 +49,10 @@ class Input
     {
         //f is distribution function normalized to 1, i.e. n=1
         double r1 = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v - u1, 2) / (2 * T));
-        double r2 = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v - u2, 2) / (2 * T)) * (1 + d * cos(k * x));
-        return 0.5 * (r1 + r2);
+        double r2 = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v - u2, 2) / (2 * T));
+        return 0.5 * (r1 + r2) * (1 + d * cos(k * x));
+        //double r = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v, 2) / (2 * T));
+        //return r;
     }
     double GetIonInitDistrib(double x, double v, double t)
     {
@@ -66,8 +68,8 @@ class Input
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "     u1 = " << setw(6) << u1
-             << "        u2 = " << setw(6) << u2 << endl;
+        cout << "       u1 = " << setw(6) << u1
+             << "       u2 = " << setw(6) << u2 << endl;
         cout << "************************************" << endl;
         cout << " Parameters Max/Min: " << endl;
         cout << "   dt_max = " << setw(6) << dt_max << endl;
