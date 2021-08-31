@@ -2,15 +2,18 @@
 #define _poisson_solver_h
 #include<eigen3/Eigen/Core>
 using namespace Eigen;
+
 class PoissonSolver
 {
   public:
     VectorXd rho;
     VectorXd phi;
     VectorXd E;
+
     double GetPhiVal(int x_index);
     double GetEVal(int x_index);
 };
+
 class PoissonSolverPeriodicBC: public PoissonSolver
 {
     const int nx;
@@ -19,14 +22,16 @@ class PoissonSolverPeriodicBC: public PoissonSolver
   public:
     PoissonSolverPeriodicBC(VectorXd _rho, double _dx);
 };
+
 class PoissonSolverDirichletBC: public PoissonSolver
 {
     const int nx;
     const double dx;
     void Calculate();
   public:
-    PoissonSolverDirichletBC(VectorXd _rho, double _dx, double _c1, double _c2);
+    PoissonSolverDirichletBC(VectorXd _rho, double _dx, double c1, double c2);
 };
+
 class PoissonSolverNaturalBC: public PoissonSolver
 {
     const int nx;
@@ -36,25 +41,5 @@ class PoissonSolverNaturalBC: public PoissonSolver
     void Calculate();
   public:
     PoissonSolverNaturalBC(VectorXd _rho, double _dx, double _d1, double _d2);
-};
-class PoissonSolverRobinBC: public PoissonSolver
-{
-    const int nx;
-    const double dx;
-    const double c1;
-    const double d2;
-    void Calculate();
-  public:
-    PoissonSolverRobinBC(VectorXd _rho, double _dx, double _c1, double _d2);
-};
-class PoissonSolverTwiceIntegral: public PoissonSolver
-{
-    const int nx;
-    const double dx;
-    const double c1;
-    const double d2;
-    void Calculate();
-  public:
-    PoissonSolverTwiceIntegral(VectorXd _rho, double _dx, double _c1, double _d2);
 };
 #endif
