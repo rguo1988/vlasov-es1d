@@ -52,8 +52,8 @@ void Simulation::Run()
          << "        T = " << setw(8) << setprecision(6) << T
          << "      w_p = " << setw(8) << setprecision(6) << w_p
          << "      l_D = " << setw(8) << setprecision(6) << l_D << endl;
-    string ifEEx = if_E_External?"On":"Off";
-    cout << "     E_Ex = " << setw(8) << setprecision(6) <<ifEEx << endl;
+    string ifEEx = if_E_External ? "On" : "Off";
+    cout << "     E_Ex = " << setw(8) << setprecision(6) << ifEEx << endl;
     cout << "************************************" << endl;
     cout << " Simulation Parameters: " << endl;
     cout << "        L = " << setw(8) << setprecision(6) << L
@@ -110,7 +110,13 @@ void Simulation::Run()
             rho_i[i] =  GetIonInitDistrib(x_samples[i], 0.0, n * dt);
         }
         rho = rho_i - rho_e;
-        PoissonSolver poisson_solver(rho, dx);
+        //double phi_bc = d * pow(cosh(L / 2 / del), -4);
+        double phi_bc = 0.0;
+        //PoissonSolverRobinBC poisson_solver(rho, dx, phi_bc, phi_bc);
+        PoissonSolverDirichletBC poisson_solver(rho, dx, phi_bc, phi_bc);
+        //PoissonSolverNaturalBC poisson_solver(rho, dx, phi_bc, phi_bc);
+        //PoissonSolverPeriodicBC poisson_solver(rho, dx);
+        //PoissonSolverTwiceIntegral poisson_solver(rho, dx, phi_bc, phi_bc);
 
         if(n % data_steps == 0)
         {
