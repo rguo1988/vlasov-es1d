@@ -110,6 +110,7 @@ void Simulation::Run()
             rho_i[i] =  GetIonInitDistrib(x_samples[i], 0.0, n * dt);
         }
         rho = rho_i - rho_e;
+        //PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
         PoissonSolverPeriodicBC poisson_solver(rho, dx);
 
         if(n % data_steps == 0)
