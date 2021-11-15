@@ -18,6 +18,7 @@ Simulation::Simulation()
     //initialize distribution
     f.resize(nx, nv);
     f.setZero();
+    CalculatePotentialSC();
     for (int i = 0; i < nx; i++)
     {
         for(int j = 0; j < nv; j++)
