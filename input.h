@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * formation of Schamel electron hole
+ * formation of electron hole due to delta disturbance
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -13,7 +13,7 @@ class Input
 {
   protected:
     //title
-    const string title = "formation of electron hole";
+    const string title = "formation of electron hole due to delta disturbance";
 
     //general parameters
     const double k = 0.1;
@@ -28,18 +28,19 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double d = 0.2;//initial disturbance
-    const double del = 5.0;
+    const double d = 0.5;//initial disturbance
+    const double u = 0.0;
+    const double del = 4.0;
 
     //simulation constant
-    static const int nx = 500;//grid num is nx-1; grid point num is nx
+    static const int nx = 600;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 500;
+    static const int nv = 600;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.01;
-    const int max_steps = 30000;
+    const double dt = 0.015;
+    const int max_steps = 40000;
     const double dt_max = min(dx / vmax, dv * m * k / abs(e * d));
 
 
@@ -50,10 +51,10 @@ class Input
 
     double GetElecInitDistrib(double x, double v)
     {
-        double rv = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v, 2) / (2 * T));
+        double rv = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v + u, 2) / (2 * T));
         double xp = (x - L / 2) / del;
-        //double rx = 1 + d * sin(k * x);
-        double rx = 1.0 - d * exp(-xp * xp);
+        //double rx = 1.0 + d * cos(k * x);
+        double rx = 1.0 + d * exp(-xp * xp) * (4.0 * xp * xp - 2.0) / del / del;
         return rx * rv;
     }
 
