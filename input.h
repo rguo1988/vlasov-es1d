@@ -22,7 +22,7 @@ class Input
     const string title = "formation of electron hole";
 
     //general parameters
-    const double L = 100;
+    const double L = 60;
     const double k = 2.0 * M_PI / L; //simulaiton length
     const double T = 1.0; //temperature
     const double m = 1.0;
@@ -34,11 +34,11 @@ class Input
     const bool if_E_External = false;
 
     //special parameters
-    const double u = 1.0;
+    const double u = 0.5;
     const double b = -2.0;
-    const double d = 0.14213;//initial disturbance
+    const double d = 0.277835;//initial disturbance
     const double alpha = -25.0;
-    const double del = 7.62463;
+    const double del = 4.5589;
     const double Z = 1.0;
 
     //simulation constant
@@ -49,7 +49,7 @@ class Input
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.02;
-    const int max_steps = 10;
+    const int max_steps = 5000;
     const double dt_max = min(dx / vmax, dv * m * k / abs(e * d));
 
     VectorXd phi_sc;
@@ -65,7 +65,7 @@ class Input
         for(int i = 0; i < nx; i++)
         {
             double xp = (i * dx - L / 2.0) / del;
-            phi_sc(i) = 1.0 * d * pow(cosh(xp), -4);
+            phi_sc(i) = 2.5 * d * pow(cosh(xp), -4);
         }
         phi_sc(0) = 0.0;
         phi_sc(nx - 1) = 0.0;
