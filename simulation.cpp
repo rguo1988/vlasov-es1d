@@ -16,32 +16,53 @@ Simulation::Simulation()
     x_samples.setLinSpaced(nx, 0, L);
     v_samples.setLinSpaced(nv, -vmax, vmax);
     //initialize distribution
-    f.resize(nx, nv);
-    f.setZero();
+    fe.resize(nx, nv);
+    fe.setZero();
+    fi.resize(nx, nv);
+    fi.setZero();
+
     CalculatePotentialSC();
+
+    //electrons
     for (int i = 0; i < nx; i++)
     {
         for(int j = 0; j < nv; j++)
         {
-            f(i, j) = GetElecInitDistrib(x_samples[i], v_samples[j]);
+            fe(i, j) = GetElecInitDistrib(x_samples[i], v_samples[j]);
         }
     }
+    //ions
     for (int i = 0; i < nx; i++)
     {
-        rho_i[i] =  GetIonInitDistrib(x_samples[i], 0.0, 0.0);
+        for(int j = 0; j < nv; j++)
+        {
+            fi(i, j) = GetIonInitDistrib(x_samples[i], v_samples[j]);
+        }
     }
+    //for (int i = 0; i < nx; i++)
+    //{
+    //rho_i[i] = 1.0;
+    //}
     Ek.clear();
     Ep.clear();
     Et.clear();
 }
 void Simulation::Run()
 {
-    double x_shift = 0.0;
-    double v_shift = 0.0;
-    MatrixXd f_xshift(nx, nv);
-    f_xshift.setZero();
-    MatrixXd f_vshift(nx, nv);
-    f_vshift.setZero();
+    //set variables for electrons
+    double xe_shift = 0.0;
+    double ve_shift = 0.0;
+    MatrixXd fe_xshift(nx, nv);
+    fe_xshift.setZero();
+    MatrixXd fe_vshift(nx, nv);
+    fe_vshift.setZero();
+    //set variables for ions
+    double xi_shift = 0.0;
+    double vi_shift = 0.0;
+    MatrixXd fi_xshift(nx, nv);
+    fi_xshift.setZero();
+    MatrixXd fi_vshift(nx, nv);
+    fi_vshift.setZero();
 
     //show information
     cout << "************************************" << endl;
@@ -49,17 +70,22 @@ void Simulation::Run()
     cout.setf(ios::left);
     cout << "************************************" << endl;
     cout << " Plasma Parameters: " << endl;
-    cout << "        k = " << setw(8) << setprecision(3) << k
-         << "        T = " << setw(8) << setprecision(6) << T
-         << "      w_p = " << setw(8) << setprecision(6) << w_p
-         << "      l_D = " << setw(8) << setprecision(6) << l_D << endl;
-    string ifEEx = if_E_External ? "On" : "Off";
-    cout << "     E_Ex = " << setw(8) << setprecision(6) << ifEEx << endl;
+    cout << "       me = " << setw(8) << setprecision(6) << me
+         << "       Te = " << setw(8) << setprecision(6) << Te
+         << "     vt_e = " << setw(8) << setprecision(6) << vt_e << endl;
+    cout << "     w_pe = " << setw(8) << setprecision(6) << w_pe
+         << "     l_De = " << setw(8) << setprecision(6) << l_e << endl;
+    cout << "       mi = " << setw(8) << setprecision(6) << mi
+         << "       Ti = " << setw(8) << setprecision(6) << Ti
+         << "     vt_i = " << setw(8) << setprecision(6) << vt_i << endl;
+    cout << "     w_pi = " << setw(8) << setprecision(6) << w_pi
+         << "     l_Di = " << setw(8) << setprecision(6) << l_i << endl;
     cout << "************************************" << endl;
     cout << " Simulation Parameters: " << endl;
     cout << "        L = " << setw(8) << setprecision(6) << L
          << "       nx = " << setw(8) << setprecision(6) << nx
          << "       dx = " << setw(8) << setprecision(6) << dx << endl;
+    cout << "        k = " << setw(8) << setprecision(6) << k << endl;
     cout << "     vmax = " << setw(8) << setprecision(6) << vmax
          << "       nv = " << setw(8) << setprecision(6) << nv
          << "       dv = " << setw(8) << setprecision(6) << dv << endl;
@@ -82,8 +108,10 @@ void Simulation::Run()
         if(n % data_steps == 0)
         {
             int nn = n / data_steps;
-            string filename = data_path + "data" + to_string(nn);
-            OutputMatrix(filename, f);
+            string filename_e = data_path + "fe" + to_string(nn);
+            OutputMatrix(filename_e, fe);
+            string filename_i = data_path + "fi" + to_string(nn);
+            OutputMatrix(filename_i, fi);
         }
 
         //x shift dt/2
@@ -91,26 +119,34 @@ void Simulation::Run()
         #pragma omp parallel for schedule(guided)
         for(int j = 0; j < nv; j++)
         {
-            Matrix<double, nx, 1> f_fixed_v_samples = f.col(j);
-            CubicSplineInterp1D cubic_spline_interp_x(x_samples, f_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+            //electrons
+            Matrix<double, nx, 1> fe_fixed_v_samples = fe.col(j);
+            CubicSplineInterp1D cubic_spline_interp_xe(x_samples, fe_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
             for(int i = 0; i < nx; i++)
             {
-                x_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(x_shift, L);
-                f_xshift(i, j) = cubic_spline_interp_x.CalcVal(x_shift);
+                xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+                ShiftAPeriod(xe_shift, L);
+                fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
+            }
+            //ions
+            Matrix<double, nx, 1> fi_fixed_v_samples = fi.col(j);
+            CubicSplineInterp1D cubic_spline_interp_xi(x_samples, fi_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+            for(int i = 0; i < nx; i++)
+            {
+                xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+                ShiftAPeriod(xi_shift, L);
+                fi_xshift(i, j) = cubic_spline_interp_xi.CalcVal(xi_shift);
+                //fi_xshift(i, j) = fi(i,j);
             }
         }
 
         //solve E
         //calculate \rho
-        rho_e = 0.5 * ( f_xshift.block(0, 0, nx, nv - 1).rowwise().sum() +
-                        f_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
-
-        for (int i = 0; i < nx; i++)
-        {
-            rho_i[i] =  GetIonInitDistrib(x_samples[i], 0.0, n * dt);
-        }
-        rho = rho_i - rho_e;
+        //rho_e = 0.5 * ( fe_xshift.block(0, 0, nx, nv - 1).rowwise().sum() + fe_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
+        //rho_i = 0.5 * ( fi.block(0, 0, nx, nv - 1).rowwise().sum() + fi.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
+        MatrixXd df = fi_xshift - fe_xshift;
+        //rho = rho_i - rho_e;
+        rho = 0.5 * ( df.block(0, 0, nx, nv - 1).rowwise().sum() + df.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
         PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
         //PoissonSolverPeriodicBC poisson_solver(rho, dx);
 
@@ -125,16 +161,31 @@ void Simulation::Run()
         #pragma omp parallel for schedule(guided)
         for(int i = 0; i < nx; i++)
         {
-            Matrix<double, nv, 1> f_fixed_x_samples = f_xshift.row(i);
-            CubicSplineInterp1D cubic_spline_interp_v(v_samples, f_fixed_x_samples, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
+            //electrons
+            Matrix<double, nv, 1> fe_fixed_x_samples = fe_xshift.row(i);
+            CubicSplineInterp1D cubic_spline_interp_ve(v_samples, fe_fixed_x_samples, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
             for(int j = 1; j < nv; j++)
             {
-                v_shift = v_samples(j) - (e / m) * (poisson_solver.GetEVal(i) + E_External(i * dx, n * dt) ) * dt;
+                ve_shift = v_samples(j) - (e / me) * poisson_solver.E(i) * dt;
                 //when v is out of range, f =0
-                f_vshift(i, j) =  0.0;
-                if(v_shift < vmax || v_shift > -vmax)
+                fe_vshift(i, j) =  0.0;
+                if(ve_shift < vmax || ve_shift > -vmax)
                 {
-                    f_vshift(i, j) =  cubic_spline_interp_v.CalcVal(v_shift);
+                    fe_vshift(i, j) =  cubic_spline_interp_ve.CalcVal(ve_shift);
+                }
+            }
+            //ions
+            Matrix<double, nv, 1> fi_fixed_x_samples = fi_xshift.row(i);
+            CubicSplineInterp1D cubic_spline_interp_vi(v_samples, fi_fixed_x_samples, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
+            for(int j = 1; j < nv; j++)
+            {
+                vi_shift = v_samples(j) + (e / mi) * poisson_solver.E(i) * dt;
+                //vi_shift = v_samples(j);
+                //when v is out of range, f =0
+                fi_vshift(i, j) =  0.0;
+                if(vi_shift < vmax || vi_shift > -vmax)
+                {
+                    fi_vshift(i, j) =  cubic_spline_interp_vi.CalcVal(vi_shift);
                 }
             }
         }
@@ -144,13 +195,23 @@ void Simulation::Run()
         #pragma omp parallel for schedule(guided)
         for(int j = 0; j < nv; j++)
         {
-            Matrix<double, nx, 1> f_fixed_v_samples2 = f_vshift.col(j);
-            CubicSplineInterp1D cubic_spline_interp_x2(x_samples, f_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+            //electrons
+            Matrix<double, nx, 1> fe_fixed_v_samples2 = fe_vshift.col(j);
+            CubicSplineInterp1D cubic_spline_interp_xe2(x_samples, fe_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
             for(int i = 0; i < nx; i++)
             {
-                x_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(x_shift, L);
-                f(i, j) = cubic_spline_interp_x2.CalcVal(x_shift);
+                xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+                ShiftAPeriod(xe_shift, L);
+                fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
+            }
+            //ions
+            Matrix<double, nx, 1> fi_fixed_v_samples2 = fi_vshift.col(j);
+            CubicSplineInterp1D cubic_spline_interp_xi2(x_samples, fi_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+            for(int i = 0; i < nx; i++)
+            {
+                xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+                ShiftAPeriod(xi_shift, L);
+                fi(i, j) = cubic_spline_interp_xi2.CalcVal(xi_shift);
             }
         }
         //diagnose energy
@@ -158,11 +219,12 @@ void Simulation::Run()
         double Ek_sum = 0.0;
         for(int i = 0; i < nx - 1; i++)
         {
-            double E_temp = poisson_solver.GetEVal(i) + E_External(i * dx, n * dt);
+            double E_temp = poisson_solver.E(i);
             E_sum +=  E_temp * E_temp;
             for(int j = 0; j < nv - 1; j++)
             {
-                Ek_sum += m * pow(-vmax + j * dv, 2) * f(i, j);
+                Ek_sum += pow(-vmax + j * dv, 2) * (me * fe(i, j) + mi * fi(i, j));
+                //Ek_sum += pow(-vmax + j * dv, 2) * (me * fe(i, j));
             }
         }
         //average energy per particle
@@ -175,7 +237,7 @@ void Simulation::Run()
     OutputVector(data_path + "kin_energy", Ek);
     OutputVector(data_path + "pot_energy", Ep);
     OutputVector(data_path + "tot_energy", Et);
-    cout << endl << "Simulation Finish!" << endl;
+    cout << endl << " Simulation Finish!" << endl;
 }
 
 void Simulation::ShiftAPeriod(double& x, double length)

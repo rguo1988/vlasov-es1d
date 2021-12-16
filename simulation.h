@@ -16,7 +16,8 @@ class Simulation: public Input
 
   public:
     //Eigen::Matrix<double, nx, nv> f;
-    Eigen::MatrixXd f;
+    Eigen::MatrixXd fe;
+    Eigen::MatrixXd fi;
     Simulation();
     void Run();
     void ShiftAPeriod(double& x,double L);
