@@ -41,7 +41,7 @@ class Input
     const double l_i = sqrt(Ti / n*e*e);
 
     //special parameters
-    const double u = 0.0;
+    const double u = 0.01;
     const double b = -2.0;
     const double d = 0.277835;//initial disturbance
     const double del = 4.5589;
