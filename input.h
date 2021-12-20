@@ -27,6 +27,7 @@ class Input
     const double vmax = 5.0;
     const double e = -1.0;
     const double n = 1.0;
+    const bool ion_motion = true;
 
     const double Te = 1.0; //temperature
     const double me = 1.0;
@@ -41,7 +42,7 @@ class Input
     const double l_i = sqrt(Ti / n*e*e);
 
     //special parameters
-    const double u = 0.01;
+    const double u = 0.5;
     const double b = -2.0;
     const double d = 0.277835;//initial disturbance
     const double del = 4.5589;
@@ -61,7 +62,7 @@ class Input
 
     //data recording
     const string data_path = "./data/";
-    const int data_steps = max_steps;
+    const int data_steps = 3;
     const int data_num = max_steps / data_steps + 1;
 
     void CalculatePotentialSC()
@@ -136,13 +137,13 @@ class Input
 
     double GetIonInitDistrib(double x, double v)
     {
-        double vt = 0.5;
+        double vt = 0.2;
         double r = 0.0;
-        if (v >= -vt - u && v <= vt - u)
-        {
-            r = 0.5 / vt;
-        }
-        //r = exp(-0.5 * pow(v + u, 2)) / sqrt(2.0 * M_PI);
+        //if (v >= -vt - u && v <= vt - u)
+        //{
+        //r = 0.5 / vt;
+        //}
+        r = exp(-0.5 * pow((v + u) / vt_i, 2)) / sqrt(2.0 * M_PI) / vt_i;
         return r;
     }
 
