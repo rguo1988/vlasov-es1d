@@ -27,7 +27,7 @@ class Input
     const double vmax = 5.0;
     const double e = -1.0;
     const double n = 1.0;
-    const bool ion_motion = true;
+    #define _ions_motion true
 
     const double Te = 1.0; //temperature
     const double me = 1.0;
@@ -55,14 +55,14 @@ class Input
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.02;
-    const int max_steps = 3000;
+    const int max_steps = 1000;
     const double dt_max = min(dx / vmax, dv * me * k / abs(e * d));
 
     VectorXd phi_sc;
 
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 3;
+    const int data_steps = max_steps;
     const int data_num = max_steps / data_steps + 1;
 
     void CalculatePotentialSC()
