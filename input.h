@@ -1,6 +1,5 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * formation of Schamel electron hole
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -19,7 +18,7 @@ class Input
 {
   protected:
     //title
-    const string title = "coupled hole soliton";
+    const string title = "coupled hole and electron acoustic soliton";
 
     //general parameters
     const double L = 60;
@@ -27,7 +26,7 @@ class Input
     const double vmax = 5.0;
     const double e = -1.0;
     const double n = 1.0;
-    #define _ions_motion true
+#define _ions_motion false
 
     const double Te = 1.0; //temperature
     const double me = 1.0;
@@ -42,7 +41,8 @@ class Input
     const double l_i = sqrt(Ti / n*e*e);
 
     //special parameters
-    const double u = 0.5;
+    const double u = 0.0;
+    const double vt_eh = 2.0;
     const double b = -2.0;
     const double d = 0.277835;//initial disturbance
     const double del = 4.5589;
@@ -120,14 +120,15 @@ class Input
     {
         double v_waveframe = v;
         double w = v * v / 2.0 - phi;
-        double r = 0.0;
+        double r1 = 0.0;
         if (v_waveframe <= -sqrt(2.0 * phi))
-            r = exp(- 0.5 * pow(-sqrt(2 * w) + u, 2));
+            r1 = exp(- 0.5 * pow(-sqrt(2 * w) + u, 2));
         else if (v_waveframe > sqrt(2.0 * phi))
-            r = exp(- 0.5 * pow( sqrt(2 * w) + u, 2));
+            r1 = exp(- 0.5 * pow( sqrt(2 * w) + u, 2));
         else
-            r = exp(-b * w - u * u / 2.0);
-        return r / sqrt(2.0 * M_PI);
+            r1 = exp(-b * w - u * u / 2.0);
+        double r2 = exp(-0.5 * pow((v + u) / vt_eh, 2)) / sqrt(2.0 * M_PI) / vt_eh;
+        return 0.5 * (r1 / sqrt(2.0 * M_PI) + r2);
     }
 
     double GetElecInitDistrib(double x, double v)

@@ -1,6 +1,5 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * formation of Schamel electron hole
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -24,22 +23,28 @@ class Input
     //general parameters
     const double L = 60;
     const double k = 2.0 * M_PI / L; //simulaiton length
-    const double T = 1.0; //temperature
-    const double me = 1.0;
-    const double mi = 1.0;
-    const double vmax = 10;
+    const double vmax = 5.0;
     const double e = -1.0;
     const double n = 1.0;
-    const double w_p = sqrt(n*e*e / me);
-    const double l_D = sqrt(T / n*e*e);
+    #define _ions_motion true
+
+    const double Te = 1.0; //temperature
+    const double me = 1.0;
+    const double vt_e = sqrt(Te / me);
+    const double w_pe = sqrt(n*e*e / me);
+    const double l_e = sqrt(Te / n*e*e); //Debye length
+
+    const double Ti = 1.0; //temperature
+    const double mi = 100.0;
+    const double vt_i = sqrt(Ti / mi);
+    const double w_pi = sqrt(n*e*e / mi);
+    const double l_i = sqrt(Ti / n*e*e);
 
     //special parameters
-    const double u = 0.0;
+    const double u = 0.5;
     const double b = -2.0;
     const double d = 0.277835;//initial disturbance
-    //const double alpha = -25.0;
     const double del = 4.5589;
-    const double Z = 1.0;
 
     //simulation constant
     static const int nx = 1000;//grid num is nx-1; grid point num is nx
@@ -79,7 +84,9 @@ class Input
 
         for(int i = 0; i < 10; i++)
         {
-            VectorXd n(nx);
+            VectorXd n;
+            n.resize(nx);
+            n.setZero();
             for (int j = 0; j < nx; j++)
             {
                 double temp = 0.0;
@@ -121,19 +128,6 @@ class Input
             r = exp(-b * w - u * u / 2.0);
         return r / sqrt(2.0 * M_PI);
     }
-    //double Sech2Distrib(double x, double v)
-    //{
-    //double xp = (x - L / 2.0) / del;
-    //double ph = d * pow(cosh(xp), -2);
-    //double v_waveframe = v;
-    //double w = pow(v_waveframe, 2) - 2.0 * ph;
-    //double r = 0.0;
-    //if (w >= 0)
-    //r = exp(- 0.5 * w);
-    //else
-    //r = 1.0 - w + alpha * w * w;
-    //return r / sqrt(2.0 * M_PI);
-    //}
 
     double GetElecInitDistrib(double x, double v)
     {
@@ -142,13 +136,13 @@ class Input
 
     double GetIonInitDistrib(double x, double v)
     {
-        double vt = 0.5;
+        double vt = 0.2;
         double r = 0.0;
-        if (v >= -vt - u && v <= vt - u)
-        {
-            r = 0.5 / vt;
-        }
-        //r = exp(-0.5 * pow(v + u, 2)) / sqrt(2.0 * M_PI);
+        //if (v >= -vt - u && v <= vt - u)
+        //{
+        //r = 0.5 / vt;
+        //}
+        r = exp(-0.5 * pow((v + u) / vt_i, 2)) / sqrt(2.0 * M_PI) / vt_i;
         return r;
     }
 
