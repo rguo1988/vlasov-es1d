@@ -41,8 +41,8 @@ class Input
     const double l_i = sqrt(Ti / n*e*e);
 
     //special parameters
-    const double u = 1.2;
-    const double vt_eh = 0.05;
+    const double u = 0.5;
+    const double vt_eh = 0.1;
     const double b = -2.0;
     const double d = 0.277835;//initial disturbance
     const double del = 4.5589;
@@ -54,7 +54,7 @@ class Input
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.02;
+    const double dt = 0.01;
     const int max_steps = 1000;
     const double dt_max = min(dx / vmax, dv * me * k / abs(e * d));
 
@@ -121,17 +121,14 @@ class Input
         double v_waveframe = v;
         double w = v * v / 2.0 - phi;
         double r1 = 0.0;
-        double uh = u;
-        double a = 0.8;
         if (v_waveframe <= -sqrt(2.0 * phi))
             r1 = exp(- 0.5 * pow(-sqrt(2 * w) + u, 2));
         else if (v_waveframe > sqrt(2.0 * phi))
             r1 = exp(- 0.5 * pow( sqrt(2 * w) + u, 2));
         else
             r1 = exp(-b * w - u * u / 2.0);
-        double r2 = exp(-0.5 * pow((v + uh) / vt_eh, 2)) / sqrt(2.0 * M_PI) / vt_eh;
-
-        return a * r1 / sqrt(2.0 * M_PI) + (1 - a) * r2;
+        double r2 = exp(-0.5 * pow((v + u) / vt_eh, 2)) / sqrt(2.0 * M_PI) / vt_eh;
+        return 0.5 * (r1 / sqrt(2.0 * M_PI) + r2);
     }
 
     double GetElecInitDistrib(double x, double v)
