@@ -60,6 +60,7 @@ void Simulation::Run()
     fe_xshift.setZero();
     MatrixXd fe_vshift(nx, nv);
     fe_vshift.setZero();
+
     //set variables for ions
     double xi_shift = 0.0;
     double vi_shift = 0.0;
@@ -119,7 +120,6 @@ void Simulation::Run()
         }
 
         //x shift dt/2
-        //#pragma omp target teams distribute parallel for map(from:f_xshift)
         #pragma omp parallel for schedule(guided)
         for(int j = 0; j < nv; j++)
         {
@@ -129,8 +129,13 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(xe_shift, L);
-                fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
+                if(xe_shift > L || xe_shift < 0.0)
+                    //periodic bc
+                    ShiftAPeriod(xe_shift, L);
+                    //open bc
+                    //fe_xshift(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
+                else
+                    fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
             }
             //ions
             Matrix<double, nx, 1> fi_fixed_v_samples = fi.col(j);
@@ -138,13 +143,17 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(xi_shift, L);
-                fi_xshift(i, j) = cubic_spline_interp_xi.CalcVal(xi_shift);
+                if(xi_shift > L || xi_shift < 0.0)
+                    //periodic bc
+                    ShiftAPeriod(xi_shift, L);
+                    //open bc
+                    //fi_xshift(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
+                else
+                    fi_xshift(i, j) = cubic_spline_interp_xi.CalcVal(xi_shift);
             }
         }
 
         //solve E
-        //calculate \rho
         MatrixXd df = fi_xshift - fe_xshift;
         rho = 0.5 * ( df.block(0, 0, nx, nv - 1).rowwise().sum() + df.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
         PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
@@ -157,7 +166,6 @@ void Simulation::Run()
             OutputMatrix(filename, poisson_solver.phi);
         }
         //v shift dt
-        //#pragma omp target teams distribute parallel for map(from:f_vshift)
         #pragma omp parallel for schedule(guided)
         for(int i = 0; i < nx; i++)
         {
@@ -190,7 +198,6 @@ void Simulation::Run()
         }
 
         //2nd x shift dt/2
-        //#pragma omp target teams distribute parallel for map(from:f)
         #pragma omp parallel for schedule(guided)
         for(int j = 0; j < nv; j++)
         {
@@ -200,8 +207,13 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(xe_shift, L);
-                fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
+                if(xe_shift > L || xe_shift < 0.0)
+                    //periodic bc
+                    ShiftAPeriod(xe_shift, L);
+                    //open bc
+                    //fe(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
+                else
+                    fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
             }
             //ions
             Matrix<double, nx, 1> fi_fixed_v_samples2 = fi_vshift.col(j);
@@ -209,8 +221,13 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(xi_shift, L);
-                fi(i, j) = cubic_spline_interp_xi2.CalcVal(xi_shift);
+                if(xi_shift > L || xi_shift < 0.0)
+                    //periodic bc
+                    ShiftAPeriod(xi_shift, L);
+                    //open bc
+                    //fi(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
+                else
+                    fi(i, j) = cubic_spline_interp_xi2.CalcVal(xi_shift);
             }
         }
         //diagnose energy
@@ -233,7 +250,6 @@ void Simulation::Run()
         Et.push_back(Ek_temp + Ep_temp);
     }
 
-//#elif _ions_motion == IMMOBILE 
 #else  //immobile ions
     //set variables for electrons
     double xe_shift = 0.0;
@@ -259,7 +275,7 @@ void Simulation::Run()
          << "     vt_i = " << setw(8) << setprecision(6) << "-" << endl;
     cout << "     w_pi = " << setw(8) << setprecision(6) << "-"
          << "     l_Di = " << setw(8) << setprecision(6) << "-" << endl;
-    cout << "Noting: Ions is Immobile!" <<endl;
+    cout << "Noting: Ions is Immobile!" << endl;
     cout << "************************************" << endl;
     cout << " Simulation Parameters: " << endl;
     cout << "        L = " << setw(8) << setprecision(6) << L
@@ -305,8 +321,13 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(xe_shift, L);
-                fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
+                //if(xe_shift > L || xe_shift < 0.0)
+                    //periodic bc
+                    ShiftAPeriod(xe_shift, L);
+                    //open bc
+                    //fe_xshift(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
+                //else
+                    fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
             }
         }
 
@@ -354,8 +375,13 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                ShiftAPeriod(xe_shift, L);
-                fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
+                //if(xe_shift > L || xe_shift < 0.0)
+                    //periodic bc
+                    ShiftAPeriod(xe_shift, L);
+                    //open bc
+                    //fe(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
+                //else
+                    fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
             }
         }
         //diagnose energy

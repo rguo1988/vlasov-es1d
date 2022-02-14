@@ -18,7 +18,7 @@ class Input
 {
   protected:
     //title
-    const string title = "coupled hole and electron acoustic soliton";
+    const string title = "smooth hole formation";
 
     //general parameters
     const double L = 80.0;
@@ -42,11 +42,11 @@ class Input
 
     //special parameters
     const double u = 0.4;
-    const double nb = 0.02;
-    const double ub = u;
+    const double nb = 0.03;
+    const double ub = 0.0;
     const double vt_b = 0.05;
-    const double b = -1.948;
-    const double d = 0.3;//initial disturbance
+    const double b = -3.989;
+    const double d = 0.1;//initial disturbance
     const double del = 4.343;
     const double cs = vt_e * sqrt(nb / (1.0 - nb));
 
@@ -57,8 +57,8 @@ class Input
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.02;
-    const int max_steps = 6000;
+    const double dt = 0.05;
+    const int max_steps = 1000;
     const double dt_max = min(dx / vmax, dv * me * k / abs(e * d));
 
     VectorXd phi_sc;
@@ -107,7 +107,6 @@ class Input
             nr_mat.diagonal() = m;
             nr_mat.diagonal(1) = VectorXd::Constant(nx - 3, -1.0);
             nr_mat.diagonal(-1) = VectorXd::Constant(nx - 3, -1.0);
-            //VcctorXd dphi = nr_mat.fullPivLu().solve(r);
             VectorXd dphi = nr_mat.ldlt().solve(r);
             phi_sc.segment(1, nx - 2) += dphi;
 
@@ -132,6 +131,17 @@ class Input
             r = exp(- 0.5 * pow( sqrt(2 * w) + u, 2));
         else
             r = exp(-b * w - u * u / 2.0);
+        return r / sqrt(2.0 * M_PI);
+    }
+
+    double GetElecFreeDistrib(double x, double v)
+    {
+        double r = exp(-0.5 * (v + u) * (v + u));
+        return r / sqrt(2.0 * M_PI);
+    }
+    double GetIonFreeDistrib(double x, double v)
+    {
+        double r = exp(-0.5 * (v + u) * (v + u));
         return r / sqrt(2.0 * M_PI);
     }
 
