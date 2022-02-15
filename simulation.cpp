@@ -21,7 +21,7 @@ Simulation::Simulation()
     fi.resize(nx, nv);
     fi.setZero();
 
-    CalculatePotentialSC();
+    //CalculatePotentialSC();
 
     //electrons
     for (int i = 0; i < nx; i++)
@@ -129,12 +129,12 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                if(xe_shift > L || xe_shift < 0.0)
-                    //periodic bc
-                    ShiftAPeriod(xe_shift, L);
-                    //open bc
+                //periodic bc
+                ShiftAPeriod(xe_shift, L);
+                //open bc
+                //if(xe_shift > L || xe_shift < 0.0)
                     //fe_xshift(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
-                else
+                //else
                     fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
             }
             //ions
@@ -143,12 +143,12 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                if(xi_shift > L || xi_shift < 0.0)
-                    //periodic bc
-                    ShiftAPeriod(xi_shift, L);
-                    //open bc
+                //periodic bc
+                ShiftAPeriod(xi_shift, L);
+                //open bc
+                //if(xi_shift > L || xi_shift < 0.0)
                     //fi_xshift(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
-                else
+                //else
                     fi_xshift(i, j) = cubic_spline_interp_xi.CalcVal(xi_shift);
             }
         }
@@ -156,8 +156,8 @@ void Simulation::Run()
         //solve E
         MatrixXd df = fi_xshift - fe_xshift;
         rho = 0.5 * ( df.block(0, 0, nx, nv - 1).rowwise().sum() + df.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
-        PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
-        //PoissonSolverPeriodicBC poisson_solver(rho, dx);
+        //PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
+        PoissonSolverPeriodicBC poisson_solver(rho, dx);
 
         if(n % data_steps == 0)
         {
@@ -207,12 +207,12 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                if(xe_shift > L || xe_shift < 0.0)
-                    //periodic bc
-                    ShiftAPeriod(xe_shift, L);
-                    //open bc
+                //periodic bc
+                ShiftAPeriod(xe_shift, L);
+                //open bc
+                //if(xe_shift > L || xe_shift < 0.0)
                     //fe(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
-                else
+                //else
                     fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
             }
             //ions
@@ -221,12 +221,12 @@ void Simulation::Run()
             for(int i = 0; i < nx; i++)
             {
                 xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-                if(xi_shift > L || xi_shift < 0.0)
-                    //periodic bc
-                    ShiftAPeriod(xi_shift, L);
-                    //open bc
+                //periodic bc
+                ShiftAPeriod(xi_shift, L);
+                //open bc
+                //if(xi_shift > L || xi_shift < 0.0)
                     //fi(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
-                else
+                //else
                     fi(i, j) = cubic_spline_interp_xi2.CalcVal(xi_shift);
             }
         }
@@ -335,8 +335,8 @@ void Simulation::Run()
         //calculate \rho
         rho_e = 0.5 * ( fe_xshift.block(0, 0, nx, nv - 1).rowwise().sum() + fe_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
         rho = rho_i - rho_e;
-        PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
-        //PoissonSolverPeriodicBC poisson_solver(rho, dx);
+        //PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
+        PoissonSolverPeriodicBC poisson_solver(rho, dx);
 
         if(n % data_steps == 0)
         {
