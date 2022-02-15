@@ -26,7 +26,7 @@ class Input
     const double vmax = 5;
     const double e = -1.0;
     const double n = 1.0;
-#define _ions_motion false
+#define _ions_motion true
 
     const double Te = 1.0; //temperature
     const double me = 1.0;
@@ -62,15 +62,17 @@ class Input
     double GetElecInitDistrib(double x, double v)
     {
         double rv = exp(-0.5 * pow(v / vt_e, 2)) / sqrt(2.0 * M_PI) / vt_e;
-        double rx = 1.0 + d * cos(k * x);
-        return rx*rv;
+        //double rx = 1.0 + d * cos(k * x);
+        //return rv*rx;
+        return rv;
     }
 
     double GetIonInitDistrib(double x, double v)
     {
         double rv = exp(-0.5 * pow(v / vt_i, 2)) / sqrt(2.0 * M_PI) / vt_i;
-        //double rx = 1.0 + d * cos(k * x);
-        return rv;
+        double rx = 1.0 + d * cos(k * x);
+        return rv*rx;
+        //return rv;
     }
 
     void PrintSpecialParameters()
