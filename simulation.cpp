@@ -175,8 +175,8 @@ void Simulation::Run()
         rho_e = 0.5 * ( fe_xshift.block(0, 0, nx, nv - 1).rowwise().sum() + fe_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
         rho = rho_i - rho_e;
 #endif
-        //PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
-        PoissonSolverPeriodicBC poisson_solver(rho, dx);
+        PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
+        //PoissonSolverPeriodicBC poisson_solver(rho, dx);
 
         if(n % data_steps == 0)
         {
