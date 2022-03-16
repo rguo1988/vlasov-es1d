@@ -35,11 +35,11 @@ class Input
     const double v_f = 1.0;
     const double kappa_s = 1.5 / (1 - v_s*v_s / (v_f*v_f));
     //const double kappa_s = 0;
-    //const double kappa_f = 100.0;
+    const double kappa_f = 2.0;
     const double Ts = 0.5 * me * kappa_s / (kappa_s - 1.5) * v_s * v_s;
+    const double Tf = 0.5 * me * kappa_f / (kappa_f - 1.5) * v_f * v_f;
     //const double Ts = 0.5 * me * v_s * v_s;
-    const double Tf = 0.5 * me * v_f * v_f;
-    //const double Tf = 0.5 * me * kappa_f / (kappa_f - 1.5) * v_f * v_f;
+    //const double Tf = 0.5 * me * v_f * v_f;
     const double l_s = sqrt(Ts / ns);
     const double l_f = sqrt(Tf / nf);
     const double d = 1e-3;
@@ -49,20 +49,20 @@ class Input
     const double u_s = 0.0;
 
     //simulation constant
-    static const int nx = 501;//grid num is nx-1; grid point num is nx
+    static const int nx = 1001;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
     static const int nv = 1001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.02;
-    const int max_steps = 5000;
+    const double dt = 0.01;
+    const int max_steps = 8000;
     const double dt_max = dv * me * k / abs(e * d);
 
 
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 2000;
+    const int data_steps = max_steps;
     const int data_num = max_steps / data_steps + 1;
 
     double GetElecInitDistrib(double x, double v)
@@ -76,10 +76,13 @@ class Input
         //double As = ns / sqrt(M_PI) / v_s;
         //double rvs = exp(-(v - u_s) * (v - u_s) / v_s / v_s);
 
-        double Afm = nf / sqrt(M_PI) / v_f;
-        double rvfm = exp(-(v - u_f) * (v - u_f) / v_f / v_f);
+        //double Af = nf / sqrt(M_PI) / v_f;
+        //double rvf = exp(-(v - u_f) * (v - u_f) / v_f / v_f);
 
-        return rx * As * rvs + Afm * rvfm;
+        double Af = nf / sqrt(M_PI * kappa_f) / v_f * tgamma(kappa_f) / tgamma(kappa_f - 0.5);
+        double rvf = pow(1 + (v - u_f) * (v - u_f) / kappa_f / v_f / v_f, -kappa_f);
+
+        return rx * (As * rvs + Af * rvf);
     }
 
     double GetIonInitDistrib(double x, double v, double t)
@@ -95,7 +98,7 @@ class Input
         cout << "       ns = " << setw(8) << ns
              << "       nf = " << setw(8) << nf << endl;
         cout << "  kappa_s = " << setw(8) << kappa_s
-             << "  kappa_f = " << setw(8) << "inf" << endl;
+             << "  kappa_f = " << setw(8) << kappa_f << endl;
         cout << "      v_s = " << setw(8) << v_s
              << "      v_f = " << setw(8) << v_f << endl;
         cout << "      u_s = " << setw(8) << u_s

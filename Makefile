@@ -6,7 +6,7 @@ OBJ := diagnose.o poisson_solver.o cubic_spline_1d_tdma.o
 OBJ_D := main.o simulation.o
 CFLAGS = -O3 -fopenmp -march=native -std=c++11
 TARGET = vlasov
-NTHREADS = 4
+NTHREADS = 64
 
 $(TARGET): $(OBJ) $(OBJ_D)
 	$(CC) $(CFLAGS) $(OBJ) $(OBJ_D) -o $(TARGET)
