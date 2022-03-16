@@ -1,6 +1,6 @@
 //To Use this input by changing the filename to input.h
 /***********************************
- * formation of electron hole due to delta disturbance
+    electron acoustic instability: two-temperature electrons
  ***********************************/
 #ifndef _input_h
 #define _input_h
@@ -13,60 +13,73 @@ class Input
 {
   protected:
     //title
-    const string title = "formation of electron hole due to disturbance";
+    const string title = "electron acoustic instability: two-kappa electrons";
 
     //general parameters
-    const double L = 80.0;
-    const double k = 2.0 * M_PI / L; //simulaiton length
-    const double vmax = 5.0;
+    const double k = 1.0;
+    const double L = 2 * M_PI / k; //simulaiton length
+    const double vmax = 10;
     const double e = -1.0;
     const double n = 1.0;
 #define _ions_motion false
 
-    const double Te = 1.0; //temperature
     const double me = 1.0;
-    const double vt_e = sqrt(Te / me);
+    const double Te = 1.0; //average temperature for all electrons
     const double w_pe = sqrt(n*e*e / me);
-    const double l_e = sqrt(Te / n*e*e); //Debye length
-
-    const double Ti = 1.0; //temperature
-    const double mi = 100.0;
-    const double vt_i = sqrt(Ti / mi);
-    const double w_pi = sqrt(n*e*e / mi);
-    const double l_i = sqrt(Ti / n*e*e);
+    const double l_e = sqrt(Te / n*e*e);
 
     //special parameters
-    const double d = 0.05;//initial disturbance
-    const double u = 0.0;
-    const double delta_x = 1.0;
-    const double delta_v = 0.1;
+    const double ns = 0.7;
+    const double nf = n - ns;
+    const double v_s = 0.1;
+    const double v_f = 1.0;
+    const double kappa_s = 1.5 / (1 - v_s*v_s / (v_f*v_f));
+    //const double kappa_s = 0;
+    //const double kappa_f = 100.0;
+    const double Ts = 0.5 * me * kappa_s / (kappa_s - 1.5) * v_s * v_s;
+    //const double Ts = 0.5 * me * v_s * v_s;
+    const double Tf = 0.5 * me * v_f * v_f;
+    //const double Tf = 0.5 * me * kappa_f / (kappa_f - 1.5) * v_f * v_f;
+    const double l_s = sqrt(Ts / ns);
+    const double l_f = sqrt(Tf / nf);
+    const double d = 1e-3;
+    const double a = 10;
+    const double vt_e = v_f;
+    const double u_f = a * v_s;
+    const double u_s = 0.0;
 
     //simulation constant
-    static const int nx = 500;//grid num is nx-1; grid point num is nx
+    static const int nx = 501;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 500;
+    static const int nv = 1001;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.02;
-    const int max_steps = 10000;
-    const double dt_max = min(dx / vmax, dv * me * k / abs(e * d));
+    const int max_steps = 5000;
+    const double dt_max = dv * me * k / abs(e * d);
 
 
     //data recording
     const string data_path = "./data/";
-    const int data_steps = 1000;
+    const int data_steps = 2000;
     const int data_num = max_steps / data_steps + 1;
 
     double GetElecInitDistrib(double x, double v)
     {
-        double rv = exp(-0.5 * pow((v + u) / vt_e, 2)) / sqrt(2 * M_PI) / vt_e;
-        double xp = (x - L / 2) / delta_x;
-        double vp = v / delta_v;
-        double rv1_x = (20 * pow(cosh(xp), -6) - 16 * pow(cosh(xp), -4)) / delta_x / delta_x;
-        //double rv1_x = (6 * pow(cosh(xp), -4) - 4 * pow(cosh(xp), -2)) / delta_x / delta_x;
-        double rv1 = -d / cosh(vp) * rv1_x;
-        return rv + rv1;
+        //f is distribution function normalized to 1, i.e. n=1
+        double rx = 1.0 + d * cos(k * x) ;
+
+        double As = ns / sqrt(M_PI * kappa_s) / v_s * tgamma(kappa_s) / tgamma(kappa_s - 0.5);
+        double rvs = pow(1 + (v - u_s) * (v - u_s) / kappa_s / v_s / v_s, -kappa_s);
+
+        //double As = ns / sqrt(M_PI) / v_s;
+        //double rvs = exp(-(v - u_s) * (v - u_s) / v_s / v_s);
+
+        double Afm = nf / sqrt(M_PI) / v_f;
+        double rvfm = exp(-(v - u_f) * (v - u_f) / v_f / v_f);
+
+        return rx * As * rvs + Afm * rvfm;
     }
 
     double GetIonInitDistrib(double x, double v, double t)
@@ -79,12 +92,21 @@ class Input
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "        d = " << setw(6) << d
-             << "  delta_x = " << setw(6) << delta_x
-             << "  delta_v = " << setw(6) << delta_v << endl;
+        cout << "       ns = " << setw(8) << ns
+             << "       nf = " << setw(8) << nf << endl;
+        cout << "  kappa_s = " << setw(8) << kappa_s
+             << "  kappa_f = " << setw(8) << "inf" << endl;
+        cout << "      v_s = " << setw(8) << v_s
+             << "      v_f = " << setw(8) << v_f << endl;
+        cout << "      u_s = " << setw(8) << u_s
+             << "      u_f = " << setw(8) << u_f
+             << "        a = " << setw(8) << a << endl;
+        cout << "    k*l_s = " << setw(8) << k*l_s
+             << "    k*l_f = " << setw(8) << k*l_f << endl;
+        cout << "        d = " << setw(8) << d << endl;
         cout << "************************************" << endl;
         cout << " Parameters Max/Min: " << endl;
-        cout << "   dt_max = " << setw(6) << dt_max << endl;
+        cout << "   dt_max = " << setw(8) << dt_max << endl;
         cout << "************************************" << endl;
     }
 };
