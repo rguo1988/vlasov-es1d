@@ -55,8 +55,8 @@ class Input
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.01;
-    const int max_steps = 8000;
+    const double dt = 0.02;
+    const int max_steps = 10000;
     const double dt_max = dv * me * k / abs(e * d);
 
 
