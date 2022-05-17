@@ -175,8 +175,8 @@ void Simulation::Run()
         rho_e = 0.5 * ( fe_xshift.block(0, 0, nx, nv - 1).rowwise().sum() + fe_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
         rho = rho_i - rho_e;
 #endif
-        PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
-        //PoissonSolverPeriodicBC poisson_solver(rho, dx);
+        //PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
+        PoissonSolverPeriodicBC poisson_solver(rho, dx);
 
         if(n % data_steps == 0)
         {
@@ -277,119 +277,6 @@ void Simulation::Run()
         Et.push_back(Ek_temp + Ep_temp);
     }
 
-//#else  //immobile ions
-    //for(int n = 0; n < max_steps + 1; n++)
-    //{
-    ////print running process
-    //int percent = 100 * n / (max_steps - 1);
-    //if(percent % 5 == 0)
-    //{
-    //cout << "\r" << " Process: " << percent << "%" << flush;
-    //}
-    ////diagnose
-    //if(n % data_steps == 0)
-    //{
-    //int nn = n / data_steps;
-    //string filename_e = data_path + "fe" + to_string(nn);
-    //OutputMatrix(filename_e, fe);
-    //string filename_i = data_path + "fi" + to_string(nn);
-    //OutputMatrix(filename_i, fi);
-    //}
-
-    ////x shift dt/2
-    ////#pragma omp target teams distribute parallel for map(from:f_xshift)
-    //#pragma omp parallel for schedule(guided)
-    //for(int j = 0; j < nv; j++)
-    //{
-    ////electrons
-    //Matrix<double, nx, 1> fe_fixed_v_samples = fe.col(j);
-    //CubicSplineInterp1D cubic_spline_interp_xe(x_samples, fe_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
-    //for(int i = 0; i < nx; i++)
-    //{
-    //xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-    ////if(xe_shift > L || xe_shift < 0.0)
-    ////periodic bc
-    //ShiftAPeriod(xe_shift, L);
-    ////open bc
-    ////fe_xshift(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
-    ////else
-    //fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
-    //}
-    //}
-
-    ////solve E
-    ////calculate \rho
-    //rho_e = 0.5 * ( fe_xshift.block(0, 0, nx, nv - 1).rowwise().sum() + fe_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
-    //rho = rho_i - rho_e;
-    ////PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
-    //PoissonSolverPeriodicBC poisson_solver(rho, dx);
-
-    //if(n % data_steps == 0)
-    //{
-    //int nn = n / data_steps;
-    //string filename = data_path + "phi" + to_string(nn);
-    //OutputMatrix(filename, poisson_solver.phi);
-    //}
-    ////v shift dt
-    ////#pragma omp target teams distribute parallel for map(from:f_vshift)
-    //#pragma omp parallel for schedule(guided)
-    //for(int i = 0; i < nx; i++)
-    //{
-    ////electrons
-    //Matrix<double, nv, 1> fe_fixed_x_samples = fe_xshift.row(i);
-    //CubicSplineInterp1D cubic_spline_interp_ve(v_samples, fe_fixed_x_samples, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
-    //for(int j = 1; j < nv; j++)
-    //{
-    //ve_shift = v_samples(j) - (e / me) * poisson_solver.E(i) * dt;
-    ////when v is out of range, f =0
-    //fe_vshift(i, j) =  0.0;
-    //if(ve_shift < vmax || ve_shift > -vmax)
-    //{
-    //fe_vshift(i, j) =  cubic_spline_interp_ve.CalcVal(ve_shift);
-    //}
-    //}
-    //}
-
-    ////2nd x shift dt/2
-    ////#pragma omp target teams distribute parallel for map(from:f)
-    //#pragma omp parallel for schedule(guided)
-    //for(int j = 0; j < nv; j++)
-    //{
-    ////electrons
-    //Matrix<double, nx, 1> fe_fixed_v_samples2 = fe_vshift.col(j);
-    //CubicSplineInterp1D cubic_spline_interp_xe2(x_samples, fe_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
-    //for(int i = 0; i < nx; i++)
-    //{
-    //xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
-    ////if(xe_shift > L || xe_shift < 0.0)
-    ////periodic bc
-    //ShiftAPeriod(xe_shift, L);
-    ////open bc
-    ////fe(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
-    ////else
-    //fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
-    //}
-    //}
-    ////diagnose energy
-    //double E_sum = 0.0;
-    //double Ek_sum = 0.0;
-    //for(int i = 0; i < nx - 1; i++)
-    //{
-    //double E_temp = poisson_solver.E(i);
-    //E_sum +=  E_temp * E_temp;
-    //for(int j = 0; j < nv - 1; j++)
-    //{
-    //Ek_sum += pow(-vmax + j * dv, 2) * (me * fe(i, j));
-    //}
-    //}
-    ////average energy per particle
-    //double Ep_temp = 0.5 * E_sum * dx / L;
-    //double Ek_temp = 0.5 * Ek_sum * dx * dv / L;
-    //Ep.push_back(Ep_temp);
-    //Ek.push_back(Ek_temp);
-    //Et.push_back(Ek_temp + Ep_temp);
-    //}
-//#endif
     OutputVector(data_path + "kin_energy", Ek);
     OutputVector(data_path + "pot_energy", Ep);
     OutputVector(data_path + "tot_energy", Et);
