@@ -1,115 +1,112 @@
 //To Use this input by changing the filename to input.h
-/***********************************
-    electron acoustic instability: two-temperature electrons
- ***********************************/
 #ifndef _input_h
 #define _input_h
 #include<cmath>
+#include<string>
 #include<iostream>
 #include<iomanip>
-#include<string>
 using namespace std;
 class Input
 {
   protected:
     //title
-    const string title = "electron acoustic instability: two-kappa electrons";
+    const string title = "formation of electron hole due to two stream instabilities";
 
     //general parameters
-    const double k = 1.0;
-    const double L = 2 * M_PI / k; //simulaiton length
-    const double vmax = 10;
+    //const double k = 0.5;
+    //const double L = 2 * M_PI / k; //simulaiton length
+    const double L = 100; //simulaiton length
+    const double k = 2 * M_PI / L;
+    const double Te = 1.0; //temperature
+    const double me = 1.0;
+    const double vt_e = sqrt(Te / me);
+    const double vmax = 10;//10.0 * sqrt(temperature / m);
     const double e = -1.0;
     const double n = 1.0;
-#define _ions_motion false
-
-    const double me = 1.0;
-    const double Te = 1.0; //average temperature for all electrons
     const double w_pe = sqrt(n*e*e / me);
     const double l_e = sqrt(Te / n*e*e);
 
     //special parameters
-    const double ns = 0.2;
-    const double nf = n - ns;
-    const double v_s = 0.1;
-    const double v_f = 1.0;
-    //const double kappa_s = 1.5 / (1 - v_s*v_s / (v_f*v_f));
-    const double kappa_s = 2;
-    //const double kappa_f = 3.0;
-    const double Ts = 0.5 * me * kappa_s / (kappa_s - 1.5) * v_s * v_s;
-    //const double Tf = 0.5 * me * kappa_f / (kappa_f - 1.5) * v_f * v_f;
-    //const double Ts = 0.5 * me * v_s * v_s;
-    const double Tf = 0.5 * me * v_f * v_f;
-    const double l_s = sqrt(Ts / ns);
-    const double l_f = sqrt(Tf / nf);
-    const double d = 1e-6;
-    const double a = 10;
-    const double vt_e = v_f;
-    const double u_f = a * v_s;
-    const double u_s = 0.0;
+    const double u1 = 1.2; //drift speed of stream 1
+    const double u2 = -1.2; //drift speed of stream 2
+    const double d = 0.01;
+    const double hx = 5.0; //hole length in x
+    const double hv = 0.1; //hole length in v
 
-    //simulation constant
-    static const int nx = 501;//grid num is nx-1; grid point num is nx
+    //definition of simulation constant
+    static const int nx = 2000;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 1001;
+    static const int nv = 1000;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
     const double dt = 0.05;
-    const int max_steps = 6000;
-    const double dt_max = dv * me * k / abs(e * d);
-
-
-    //data recording
+    const int max_steps = 100;
+    const double dt_max = min(dx / vmax, dv * me * k / abs(e * d));
+    //
+    //data saveing
     const string data_path = "./data/";
     const int data_steps = max_steps;
     const int data_num = max_steps / data_steps + 1;
 
-    double GetElecInitDistrib(double x, double v)
+    double A = CalNorm();
+
+    double CalNorm()
+    {
+        double sum_f = 0.0;
+        for (int i = 0; i < nx; i++)
+            for (int j = 0; j < nv; j++)
+                sum_f += ElecDistrib(i * dx, -vmax + j * dv);
+        return sum_f * dx * dv / L;
+    }
+    double ElecDistrib(double x, double v)
     {
         //f is distribution function normalized to 1, i.e. n=1
-        double rx = 1.0 + d * cos(k * x) ;
+        double xp = x - L / 2.0;
+        double p = d * pow(cosh(xp / hx), -2);
+        double r1 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u1, 2) / (2 * Te));
+        double r2 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u2, 2) / (2 * Te));
+        //double fd = d * exp(-v * v / 2 / hv) * exp(-xp * xp / 2 / hx);
+        double fd = 1.0 + 4.0 * p / hx / hx - 6.0 * p / d / hx / hx;
+        //double fd = d * exp(-v * v / 2 / hv) * (-4.0 * p / hx / hx + 6.0 * p / d / hx / hx);
 
-        double As = ns / sqrt(M_PI * kappa_s) / v_s * tgamma(kappa_s) / tgamma(kappa_s - 0.5);
-        double rvs = pow(1 + (v - u_s) * (v - u_s) / kappa_s / v_s / v_s, -kappa_s);
+        return 0.5 * (r1 + r2) * fd;
 
-        //double As = ns / sqrt(M_PI) / v_s;
-        //double rvs = exp(-(v - u_s) * (v - u_s) / v_s / v_s);
-
-        double Af = nf / sqrt(M_PI) / v_f;
-        double rvf = exp(-(v - u_f) * (v - u_f) / v_f / v_f);
-
-        //double Af = nf / sqrt(M_PI * kappa_f) / v_f * tgamma(kappa_f) / tgamma(kappa_f - 0.5);
-        //double rvf = pow(1 + (v - u_f) * (v - u_f) / kappa_f / v_f / v_f, -kappa_f);
-
-        return rx * (As * rvs + Af * rvf);
+        //return 0.5 * (r1 + r2) * (1 + d * cos(k * x));
+        //double r = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v, 2) / (2 * T));
+        //return r;
     }
 
+    double GetElecInitDistrib(double x, double v)
+    {
+        return ElecDistrib(x, v);
+        //return ElecDistrib(x, v) / A;
+    }
+    double GetElecFreeDistrib(double x, double v)
+    {
+        double r1 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u1, 2) / (2 * Te));
+        double r2 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u2, 2) / (2 * Te));
+
+        return 0.5 * (r1 + r2);
+    }
     double GetIonInitDistrib(double x, double v, double t)
     {
-        double r = 1.0;
-        return r;
+        return 1.0;
+    }
+    double GetIonFreeDistrib(double x, double v, double t)
+    {
+        return 1.0;
     }
 
     void PrintSpecialParameters()
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "       ns = " << setw(8) << ns
-             << "       nf = " << setw(8) << nf << endl;
-        cout << "  kappa_s = " << setw(8) << kappa_s
-             << "  kappa_f = " << setw(8) << "inf" << endl;
-        cout << "      v_s = " << setw(8) << v_s
-             << "      v_f = " << setw(8) << v_f << endl;
-        cout << "      u_s = " << setw(8) << u_s
-             << "      u_f = " << setw(8) << u_f
-             << "        a = " << setw(8) << a << endl;
-        cout << "    k*l_s = " << setw(8) << k*l_s
-             << "    k*l_f = " << setw(8) << k*l_f << endl;
-        cout << "        d = " << setw(8) << d << endl;
+        cout << "       u1 = " << setw(6) << u1
+             << "       u2 = " << setw(6) << u2 << endl;
         cout << "************************************" << endl;
         cout << " Parameters Max/Min: " << endl;
-        cout << "   dt_max = " << setw(8) << dt_max << endl;
+        cout << "   dt_max = " << setw(6) << dt_max << endl;
         cout << "************************************" << endl;
     }
 };

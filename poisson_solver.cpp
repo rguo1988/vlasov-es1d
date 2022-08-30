@@ -114,8 +114,8 @@ void PoissonSolverDirichletBC::Calculate()
 
 PoissonSolverNaturalBC::PoissonSolverNaturalBC(VectorXd _rho, double _dx, double _d1, double _d2): PoissonSolver(_rho, _dx), d1(_d1), d2(_d2)
 {
-    rho[1] -= d1 / dx;
-    rho[nx - 1] += d2 / dx;
+    rho[1] -= 2 * d1 / dx;
+    rho[nx - 2] += 2 * d2 / dx;
     Calculate();
 }
 
@@ -123,32 +123,32 @@ PoissonSolverNaturalBC::PoissonSolverNaturalBC(VectorXd _rho, double _dx, double
 void PoissonSolverNaturalBC::Calculate()
 {
     //construct laplace opretor
-    //-1  1  0  0
+    //-2  2  0  0
     // 1 -2  1  0
     // 0  1 -2  1
-    // 0  0  1 -1
+    // 0  0  2 -2
 
     double dx2 = dx * dx;
     double r[nx];
     double b[nx];
-    r[0] = b[0] = 0.0;
+    r[0] = b[0] = 0.0; //useless parameters
     r[1] = b[1] = 0.0;
     r[2] = 1.0;
-    b[2] = rho[1] * dx2;
+    b[2] = 0.5 * rho[1] * dx2;
 
-    for(int i = 2; i <= nx - 2; i++)
+    for(int i = 2; i <= nx - 3; i++)
     {
         r[i + 1] = -1.0 / (r[i] - 2);
         b[i + 1] = (-rho[i] * dx2 - b[i]) / (r[i] - 2);
     }
 
-    std::cout << r[nx - 2] << std::endl;
-    phi(nx - 1) = (-rho(nx - 1) * dx2 - b[nx - 1]) / (r[nx - 1] - 1.0);
-    for(int j = nx - 1; j >= 2; j--)
+    phi(nx - 2) = (-rho(nx - 2) * dx2 - b[nx - 2]) / (2.0 * r[nx - 2] - 2.0);
+    for(int j = nx - 2; j >= 3; j--)
     {
         phi[j - 1] = r[j] * phi[j] + b[j];
     }
-    phi[0] = -d1 * dx + phi[1];
+    phi[0] = phi[2] - 2.0 * d1 * dx;
+    phi[nx - 1] = phi[nx - 3] + 2.0 * d2 * dx;
 
     //calculate E
     for(int i = 1; i <= nx - 2; i++)
