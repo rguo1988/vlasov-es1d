@@ -149,7 +149,7 @@ class Input
     double GetElecInitDistrib(double x, double v)
     {
         //return SchamelDistribution(phi_sc(x / dx), v); //Schamel sech4 EH
-        return SmoothDistribution(phi_sc(x / dx), v);//smooth EH
+        return SmoothDistribution(phi_sc[x / dx], v);//smooth EH
     }
 
     double GetIonInitDistrib(double x, double v)

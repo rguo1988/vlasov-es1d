@@ -21,7 +21,7 @@ Simulation::Simulation()
     fi.resize(nx, nv);
     fi.setZero();
 
-    //CalculatePotentialSC();
+    CalculatePotentialSC();
 
     //electrons
     for (int i = 0; i < nx; i++)
@@ -137,34 +137,48 @@ void Simulation::Run()
         {
             //electrons
             Matrix<double, nx, 1> fe_fixed_v_samples = fe.col(j);
+#if (_boundary_condition==Dirichlet||_boundary_condition==Debye)
             CubicSplineInterp1D cubic_spline_interp_xe(x_samples, fe_fixed_v_samples, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
-            //CubicSplineInterp1D cubic_spline_interp_xe(x_samples, fe_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#elif(_boundary_condition==Periodic)
+            CubicSplineInterp1D cubic_spline_interp_xe(x_samples, fe_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#endif
+
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+#if(_boundary_condition==Periodic)
                 //periodic bc
-                //ShiftAPeriod(xe_shift, L);
+                ShiftAPeriod(xe_shift, L);
+#elif (_boundary_condition==Dirichlet||_boundary_condition==Debye)
                 //open bc
                 if(xe_shift > L || xe_shift < 0.0)
-                fe_xshift(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
+                    fe_xshift(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
                 else
-                fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
+#endif
+                    fe_xshift(i, j) = cubic_spline_interp_xe.CalcVal(xe_shift);
             }
 #if _ions_motion
             //ions
             Matrix<double, nx, 1> fi_fixed_v_samples = fi.col(j);
+#if (_boundary_condition==Dirichlet||_boundary_condition==Debye)
             CubicSplineInterp1D cubic_spline_interp_xi(x_samples, fi_fixed_v_samples, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
-            //CubicSplineInterp1D cubic_spline_interp_xi(x_samples, fi_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#elif(_boundary_condition==Periodic)
+            CubicSplineInterp1D cubic_spline_interp_xi(x_samples, fi_fixed_v_samples, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#endif
+
             for(int i = 0; i < nx; i++)
             {
                 xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+#if(_boundary_condition==Periodic)
                 //periodic bc
-                //ShiftAPeriod(xi_shift, L);
+                ShiftAPeriod(xi_shift, L);
+#elif (_boundary_condition==Dirichlet||_boundary_condition==Debye)
                 //open bc
                 if(xi_shift > L || xi_shift < 0.0)
-                fi_xshift(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
+                    fi_xshift(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
                 else
-                fi_xshift(i, j) = cubic_spline_interp_xi.CalcVal(xi_shift);
+#endif
+                    fi_xshift(i, j) = cubic_spline_interp_xi.CalcVal(xi_shift);
             }
 #endif
         }
@@ -177,8 +191,15 @@ void Simulation::Run()
         rho_e = 0.5 * ( fe_xshift.block(0, 0, nx, nv - 1).rowwise().sum() + fe_xshift.block(0, 1, nx, nv - 1).rowwise().sum() ) * dv;
         rho = rho_i - rho_e;
 #endif
+
+//Solve Poisson equations under different BCs
+#if(_boundary_condition==Periodic)
+        PoissonSolverPeriodicBC poisson_solver(rho, dx);
+#elif(_boundary_condition==Dirichlet)
         PoissonSolverDirichletBC poisson_solver(rho, dx, 0.0, 0.0);
-        //PoissonSolverPeriodicBC poisson_solver(rho, dx);
+#elif(_boundary_condition==Debye)
+        PoissonSolverDebyeBC poisson_solver(rho, dx, l_e);
+#endif
 
         if(n % data_steps == 0)
         {
@@ -186,6 +207,7 @@ void Simulation::Run()
             string filename = data_path + "phi" + to_string(nn);
             OutputMatrix(filename, poisson_solver.phi);
         }
+
         //v shift dt
         #pragma omp parallel for schedule(guided)
         for(int i = 0; i < nx; i++)
@@ -226,34 +248,46 @@ void Simulation::Run()
         {
             //electrons
             Matrix<double, nx, 1> fe_fixed_v_samples2 = fe_vshift.col(j);
+#if (_boundary_condition==Dirichlet||_boundary_condition==Debye)
             CubicSplineInterp1D cubic_spline_interp_xe2(x_samples, fe_fixed_v_samples2, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
-            //CubicSplineInterp1D cubic_spline_interp_xe2(x_samples, fe_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#elif (_boundary_condition==Periodic)
+            CubicSplineInterp1D cubic_spline_interp_xe2(x_samples, fe_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#endif
             for(int i = 0; i < nx; i++)
             {
                 xe_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+#if (_boundary_condition==Periodic)
                 //periodic bc
-                //ShiftAPeriod(xe_shift, L);
+                ShiftAPeriod(xe_shift, L);
+#elif (_boundary_condition==Dirichlet||Debye)
                 //open bc
                 if(xe_shift > L || xe_shift < 0.0)
-                fe(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
+                    fe(i, j) = GetElecFreeDistrib(i * dx, -vmax + j * dv);
                 else
-                fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
+#endif
+                    fe(i, j) = cubic_spline_interp_xe2.CalcVal(xe_shift);
             }
 #if _ions_motion
             //ions
             Matrix<double, nx, 1> fi_fixed_v_samples2 = fi_vshift.col(j);
+#if (_boundary_condition==Dirichlet||_boundary_condition==Debye)
             CubicSplineInterp1D cubic_spline_interp_xi2(x_samples, fi_fixed_v_samples2, CubicSplineInterp1D::fp_zero, CubicSplineInterp1D::equal_interval);
-            //CubicSplineInterp1D cubic_spline_interp_xi2(x_samples, fi_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#elif (_boundary_condition==Periodic)
+            CubicSplineInterp1D cubic_spline_interp_xi2(x_samples, fi_fixed_v_samples2, CubicSplineInterp1D::periodic, CubicSplineInterp1D::equal_interval);
+#endif
             for(int i = 0; i < nx; i++)
             {
                 xi_shift = x_samples(i) - 0.5 * dt * v_samples(j);
+#if (_boundary_condition==Periodic)
                 //periodic bc
-                //ShiftAPeriod(xi_shift, L);
+                ShiftAPeriod(xi_shift, L);
+#elif(_boundary_condition==Dirichlet||Debye)
                 //open bc
                 if(xi_shift > L || xi_shift < 0.0)
-                fi(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
+                    fi(i, j) = GetIonFreeDistrib(i * dx, -vmax + j * dv);
                 else
-                fi(i, j) = cubic_spline_interp_xi2.CalcVal(xi_shift);
+#endif
+                    fi(i, j) = cubic_spline_interp_xi2.CalcVal(xi_shift);
             }
 #endif
         }

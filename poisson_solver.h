@@ -31,12 +31,11 @@ class PoissonSolverDirichletBC: public PoissonSolver
     PoissonSolverDirichletBC(VectorXd _rho, double _dx, double c1, double c2);
 };
 
-class PoissonSolverNaturalBC: public PoissonSolver
+class PoissonSolverDebyeBC: public PoissonSolver
 {
-    const double d1;
-    const double d2;
+    const double l_D;
     void Calculate();
   public:
-    PoissonSolverNaturalBC(VectorXd _rho, double _dx, double _d1, double _d2);
+    PoissonSolverDebyeBC(VectorXd _rho, double _dx, double _l_D);
 };
 #endif

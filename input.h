@@ -1,109 +1,170 @@
 //To Use this input by changing the filename to input.h
+/***********************************
+ ***********************************/
 #ifndef _input_h
 #define _input_h
 #include<cmath>
-#include<string>
 #include<iostream>
 #include<iomanip>
+#include<string>
+#include<eigen3/Eigen/Core>
+#include<eigen3/Eigen/QR>
+#include<eigen3/Eigen/Dense>
+#include"diagnose.h"
+
 using namespace std;
+using namespace Eigen;
+
 class Input
 {
   protected:
     //title
-    const string title = "formation of electron hole due to two stream instabilities";
+    const string title = "EH formation in ion acoustic solitary waves";
 
     //general parameters
-    //const double k = 0.5;
-    //const double L = 2 * M_PI / k; //simulaiton length
-    const double L = 100; //simulaiton length
-    const double k = 2 * M_PI / L;
+    const double L = 200;
+    const double k = 2.0 * M_PI / L; //simulaiton length
+    const double vmax = 5.0;
+    const double e = -1.0;
+    const double n = 1.0;
+#define _ions_motion true
+#define _boundary_condition Dirichlet //available bc: Dirichlet, Debye, Periodic
+
     const double Te = 1.0; //temperature
     const double me = 1.0;
     const double vt_e = sqrt(Te / me);
-    const double vmax = 10;//10.0 * sqrt(temperature / m);
-    const double e = -1.0;
-    const double n = 1.0;
     const double w_pe = sqrt(n*e*e / me);
-    const double l_e = sqrt(Te / n*e*e);
+    const double l_e = sqrt(Te / n*e*e); //Debye length
+
+    const double Ti = 1.0; //temperature
+    const double mi = 100.0;
+    const double vt_i = sqrt(Ti / mi);
+    const double w_pi = sqrt(n*e*e / mi);
+    const double l_i = sqrt(Ti / n*e*e);
 
     //special parameters
-    const double u1 = 1.2; //drift speed of stream 1
-    const double u2 = -1.2; //drift speed of stream 2
-    const double d = 0.01;
-    const double hx = 5.0; //hole length in x
-    const double hv = 0.1; //hole length in v
+    const double cs = sqrt(Te / mi);
+    const double u = 1.1; //dimensionless wave speed; unit in cs
+    const double psi = 3 * (u - 1.0) * Te;
+    const double del = sqrt(2.0 / (u - 1.0));
 
-    //definition of simulation constant
-    static const int nx = 2000;//grid num is nx-1; grid point num is nx
+    //simulation constant
+    static const int nx = 1000;//grid num is nx-1; grid point num is nx
     static const int nx_grids = nx - 1;
-    static const int nv = 1000;
+    static const int nv = 500;
     static const int nv_grids = nv - 1;
     const double dx = L / nx_grids;
     const double dv = 2 * vmax / nv_grids;
-    const double dt = 0.05;
-    const int max_steps = 100;
-    const double dt_max = min(dx / vmax, dv * me * k / abs(e * d));
-    //
-    //data saveing
+    const double dt = 0.02;
+    const int max_steps = 10;
+    const double dt_max = min(dx / vmax, dv * me * k / abs(e * psi));
+
+    //data recording
     const string data_path = "./data/";
     const int data_steps = max_steps;
     const int data_num = max_steps / data_steps + 1;
 
-    double A = CalNorm();
-
-    double CalNorm()
+    VectorXd phi_sc;
+    VectorXd CalculateRho(VectorXd phi)
     {
-        double sum_f = 0.0;
-        for (int i = 0; i < nx; i++)
-            for (int j = 0; j < nv; j++)
-                sum_f += ElecDistrib(i * dx, -vmax + j * dv);
-        return sum_f * dx * dv / L;
+        VectorXd rho(nx);
+        for (int j = 0; j < nx; j++)
+        {
+            rho[j] = - exp(phi_sc[j]) + u / sqrt(u * u - 2 * phi_sc[j]);
+        }
+        return rho;
     }
-    double ElecDistrib(double x, double v)
+    void CalculatePotentialSC()
     {
-        //f is distribution function normalized to 1, i.e. n=1
-        double xp = x - L / 2.0;
-        double p = d * pow(cosh(xp / hx), -2);
-        double r1 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u1, 2) / (2 * Te));
-        double r2 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u2, 2) / (2 * Te));
-        //double fd = d * exp(-v * v / 2 / hv) * exp(-xp * xp / 2 / hx);
-        double fd = 1.0 + 4.0 * p / hx / hx - 6.0 * p / d / hx / hx;
-        //double fd = d * exp(-v * v / 2 / hv) * (-4.0 * p / hx / hx + 6.0 * p / d / hx / hx);
+        //dimensionless phi; unit in Te/e; using nonlinear iteration method
+        //initial guess
+        phi_sc.resize(nx);
+        for(int i = 0; i < nx; i++)
+        {
+            double xp = (i * dx - L / 2.0) / del;
+            phi_sc(i) = 0.7 * psi * pow(cosh(xp), -2);
+        }
+        //phi_sc(0) = psi * pow(cosh(-L / 2.0 / del), -2);
+        phi_sc(0) = 0.0;
+        phi_sc(nx - 1) = phi_sc(0);
 
-        return 0.5 * (r1 + r2) * fd;
+        //construct laplace op
+        //Dirichlet BC
+        MatrixXd laplace(nx - 2, nx - 2);
+        laplace.diagonal() = VectorXd::Constant(nx - 2, -2);
+        laplace.diagonal(1) =  VectorXd::Constant(nx - 3, 1);
+        laplace.diagonal(-1) =  VectorXd::Constant(nx - 3, 1);
+        double dx2 = dx * dx;
 
-        //return 0.5 * (r1 + r2) * (1 + d * cos(k * x));
-        //double r = sqrt(1.0 / (2 * M_PI * T)) * exp(- pow(v, 2) / (2 * T));
-        //return r;
+        //solve by iteration
+        for(int i = 0; i < 10; i++)
+        {
+            VectorXd rho(nx);
+            rho = CalculateRho(phi_sc);
+            VectorXd r = rho.segment(1, nx - 2) * dx2 + laplace * phi_sc.segment(1, nx - 2);
+            VectorXd m = VectorXd::Ones(nx - 2).array() * 2.0 - (rho.segment(2, nx - 2) - rho.segment(0, nx - 2)).array() / (phi_sc.segment(2, nx - 2) - phi_sc.segment(0, nx - 2)).array() * dx2;
+            MatrixXd nr_mat(nx - 2, nx - 2);
+            nr_mat.setZero();
+            nr_mat.diagonal() = m;
+            nr_mat.diagonal(1) = VectorXd::Constant(nx - 3, -1);
+            nr_mat.diagonal(-1) = VectorXd::Constant(nx - 3, -1);
+            VectorXd dphi = nr_mat.fullPivLu().solve(r);
+            phi_sc.segment(1, nx - 2) += dphi;
+
+            double err = sqrt((dphi.array() * dphi.array()).sum() / nx);
+            if(err < psi * 1e-4)
+            {
+                cout << "Self consistent potential is solved! Iteration counts = "  << i << endl;
+                break;
+            }
+        }
+        string file = data_path + "phi_sc";
+        OutputMatrix(file, phi_sc);
     }
 
     double GetElecInitDistrib(double x, double v)
     {
-        return ElecDistrib(x, v);
-        //return ElecDistrib(x, v) / A;
+        //double r = sqrt(me / (2 * M_PI * Te)) * exp(- me * pow(v - u, 2) / (2 * Te));
+        double r = sqrt(me / 2 / M_PI / Te) * exp(- me * pow(v + u * cs, 2) / (2 * Te)) * exp(phi_sc[x / dx]);
+        //double phi = phi_sc[x / dx];
+        //double w = v * v / 2.0 - phi;
+        //double r = 0.0;
+
+        //if (v <= -sqrt(2.0 * phi))
+        //r = exp(- pow(-sqrt(2 * w) + u * cs, 2) / 2 / Te);
+        //else if (v > sqrt(2.0 * phi))
+        //r = exp(- pow( sqrt(2 * w) + u * cs, 2) / 2 / Te);
+        //else
+        //r = 1.0;
+        //return r * sqrt(me / 2.0 / M_PI / Te);
+        return r;
     }
+
     double GetElecFreeDistrib(double x, double v)
     {
-        double r1 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u1, 2) / (2 * Te));
-        double r2 = sqrt(1.0 / (2 * M_PI * Te)) * exp(- pow(v - u2, 2) / (2 * Te));
+        double r = sqrt(mi / (2 * M_PI * Te)) * exp(- mi * pow(v + u * cs, 2) / (2 * Te));
+        return r;
+    }
 
-        return 0.5 * (r1 + r2);
-    }
-    double GetIonInitDistrib(double x, double v, double t)
+    double GetIonInitDistrib(double x, double v)
     {
-        return 1.0;
+        double rx = n * u / sqrt(u * u - 2.0 * phi_sc[x / dx]);
+        double rv = sqrt(mi / (2 * M_PI * Ti)) * exp(- mi * pow(v + u * cs, 2) / (2 * Ti));
+        return rx * rv;
     }
-    double GetIonFreeDistrib(double x, double v, double t)
+
+    double GetIonFreeDistrib(double x, double v)
     {
-        return 1.0;
+        return GetIonInitDistrib(0.0, v);
     }
 
     void PrintSpecialParameters()
     {
         cout << "************************************" << endl;
         cout << " Special Parameters: " << endl;
-        cout << "       u1 = " << setw(6) << u1
-             << "       u2 = " << setw(6) << u2 << endl;
+        cout << "          u = " << setw(6) << u << endl;
+        cout << " psi_approx = " << setw(6) << psi
+             << " del_approx = " << setw(6) << del << endl;
         cout << "************************************" << endl;
         cout << " Parameters Max/Min: " << endl;
         cout << "   dt_max = " << setw(6) << dt_max << endl;

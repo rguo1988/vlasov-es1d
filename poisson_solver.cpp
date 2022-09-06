@@ -1,8 +1,8 @@
 /***************************
  * Solver of Poisson equation
  * Author: rguo
- * Data:   2021-8-26
- * Note:   A direct Thomas algorithm with Periodic BC
+ * Data:   2022-8-31
+ * Note:   Shooting method solving Poisson equation with Periodic, Dirichlet and Debye BC
  *         Periodic BC requires neutral total charges
  ****************************/
 #include<eigen3/Eigen/Core>
@@ -79,29 +79,40 @@ PoissonSolverDirichletBC::PoissonSolverDirichletBC(VectorXd _rho, double _dx, do
 //solve poisson equation with Dirichlet condition
 void PoissonSolverDirichletBC::Calculate()
 {
-    //construct laplace opretor
-    //-2  1  0  0
-    //1 -2  1  0
-    //0  1 -2  1
-    //0  0  1 -2
-
+    //ode: y''=f(x,y,y'); y(a) = c1; y(b) = c2;
+    //solve: y''=f(x,y,y'); y(a) = c1; y'(a) = t1; obtain: y(b) = y(b, t1);
+    //do k times:
+    //tk = tk-1 - (y(b,t_k-1)-c2) (t_k-1-t_k-2)/ (y(b,t_k-1)-y(b,t_k-2))
+    double t2 = 0.0;//set t2
+    double t1 = 0.0006; //set t1
+    double t0 = 0.6 * t1; //set t0
     double dx2 = dx * dx;
-    double r[nx - 1];
-    double b[nx - 1];
-    r[0] = b[0] = 0.0;
-    r[1] = b[1] = 0.0;
-    rho[1] += phi[0] / dx2;
-    rho[nx - 2] += phi[nx - 1] / dx2;
-    for(int i = 1; i <= nx - 3; i++)
+    double phi00, phi01, phi02 = 0.0;
+    double phi10, phi11, phi12 = 0.0;
+    for(int j = 1; j < 100; j++)
     {
-        r[i + 1] = -1.0 / (r[i] - 2);
-        b[i + 1] = (-rho[i] * dx2 - b[i]) / (r[i] - 2);
+        phi00 = phi10 = phi[0];
+        phi01 = phi[0] + t0 * dx;
+        phi11 = phi[0] + t1 * dx;
+        for(int i = 1; i <= nx - 2; i++)
+        {
+            phi02 = -rho[i] * dx2 + 2.0 * phi01 - phi00;
+            phi00 = phi01;
+            phi01 = phi02;
+            phi12 = -rho[i] * dx2 + 2.0 * phi11 - phi10;
+            phi10 = phi11;
+            phi11 = phi12;
+        }
+        if(abs(phi12 - phi[nx - 1]) < 1e-6)
+            break;
+        t2 = t1 - (phi12 - phi[nx - 1]) * (t1 - t0) / (phi12 - phi02);
+        t0 = t1;
+        t1 = t2;
     }
-    phi(nx - 2) = (-rho(nx - 2) * dx2 - b[nx - 2]) / (r[nx - 2] - 2);
-    for(int j = nx - 2; j >= 2; j--)
-    {
-        phi[j - 1] = r[j] * phi[j] + b[j];
-    }
+
+    phi[1] = phi[0] + t1 * dx;
+    for(int i = 1; i <= nx - 2; i++)
+        phi[i + 1] = -rho[i] * dx2 + 2.0 * phi[i] - phi[i - 1];
 
     //calculate E
     for(int i = 0; i <= nx - 1; i++)
@@ -112,51 +123,61 @@ void PoissonSolverDirichletBC::Calculate()
     }
 }
 
-PoissonSolverNaturalBC::PoissonSolverNaturalBC(VectorXd _rho, double _dx, double _d1, double _d2): PoissonSolver(_rho, _dx), d1(_d1), d2(_d2)
+PoissonSolverDebyeBC::PoissonSolverDebyeBC(VectorXd _rho, double _dx, double _l_D): PoissonSolver(_rho, _dx), l_D(_l_D)
 {
-    rho[1] -= 2 * d1 / dx;
-    rho[nx - 2] += 2 * d2 / dx;
     Calculate();
 }
 
-//solve poisson equation with Natural condition
-void PoissonSolverNaturalBC::Calculate()
+//solve poisson equation with Debye condition: phi' = phi/lambda_D and phi' = -phi/lambda_D
+void PoissonSolverDebyeBC::Calculate()
 {
-    //construct laplace opretor
-    //-2  2  0  0
-    // 1 -2  1  0
-    // 0  1 -2  1
-    // 0  0  2 -2
+    //ode: y''=f(x,y,y'); y'(a) = y(a)/l_D; y'(b) = -y(b)/l_D;
+    //solve: y''=f(x,y,y'); y(a) = t1; y'(a) = t1/l_D; obtain: e(t1) = y'(b,t1) + y(b,t1)/l_D;
+    //do k times:
+    //tk = tk-1 - e(t_k-1)*(t_k-1-t_k-2)/ (e(t_k-1)-e(t_k-2))
 
+    double t2 = 0.0;//set t2
+    double t1 = 0.1; //set t1
+    double t0 = 0; //set t0
     double dx2 = dx * dx;
-    double r[nx];
-    double b[nx];
-    r[0] = b[0] = 0.0; //useless parameters
-    r[1] = b[1] = 0.0;
-    r[2] = 1.0;
-    b[2] = 0.5 * rho[1] * dx2;
-
-    for(int i = 2; i <= nx - 3; i++)
+    double phi00, phi01, phi02 = 0.0;
+    double phi10, phi11, phi12 = 0.0;
+    for(int j = 1; j < 100; j++)
     {
-        r[i + 1] = -1.0 / (r[i] - 2);
-        b[i + 1] = (-rho[i] * dx2 - b[i]) / (r[i] - 2);
+        phi00 = t0;
+        phi10 = t1;
+        phi01 = t0 + 2.0 * t0 / l_D * dx;
+        phi11 = t1 + 2.0 * t1 / l_D * dx;
+        for(int i = 1; i <= nx - 2; i++)
+        {
+            phi02 = -rho[i] * dx2 + 2.0 * phi01 - phi00;
+            phi00 = phi01;
+            phi01 = phi02;
+            phi12 = -rho[i] * dx2 + 2.0 * phi11 - phi10;
+            phi10 = phi11;
+            phi11 = phi12;
+        }
+        double e0 = (phi01 - phi00) / 2.0 / dx + phi01 / l_D;
+        double e1 = (phi11 - phi10) / 2.0 / dx + phi11 / l_D;
+        if(abs(e1) < 1e-6)
+            break;
+        t2 = t1 - e1 * (t1 - t0) / (e1 - e0);
+        t0 = t1;
+        t1 = t2;
     }
 
-    phi(nx - 2) = (-rho(nx - 2) * dx2 - b[nx - 2]) / (2.0 * r[nx - 2] - 2.0);
-    for(int j = nx - 2; j >= 3; j--)
-    {
-        phi[j - 1] = r[j] * phi[j] + b[j];
-    }
-    phi[0] = phi[2] - 2.0 * d1 * dx;
-    phi[nx - 1] = phi[nx - 3] + 2.0 * d2 * dx;
+    phi[0] = t1;
+    phi[1] = t1 + 2.0 * t1 / l_D * dx;
+    for(int i = 1; i <= nx - 2; i++)
+        phi[i + 1] = -rho[i] * dx2 + 2.0 * phi[i] - phi[i - 1];
 
     //calculate E
-    for(int i = 1; i <= nx - 2; i++)
+    for(int i = 0; i <= nx - 1; i++)
     {
-        E[i] = -(phi[i + 1] - phi[i - 1]) / (2 * dx);
+        double phi_plus = (i == nx - 1) ? phi[nx - 1] : phi[i + 1];
+        double phi_minus = (i == 0) ? phi[0] : phi[i - 1];
+        E[i] = -(phi_plus - phi_minus) / (2 * dx);
     }
-    E[0] = -d1;
-    E[nx - 1] = -d2;
 }
 double PoissonSolver::GetPhiVal(int x_index)
 {
